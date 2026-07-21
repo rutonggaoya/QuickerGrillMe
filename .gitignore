@@ -1,0 +1,5 @@
+node_modules/
+dist/
+answers.json
+*.tmp
+.DS_Store
