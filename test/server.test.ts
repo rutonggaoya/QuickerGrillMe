@@ -44,6 +44,7 @@ describe("local browser API", () => {
     const running = await startQuestionnaireServer({
       questionnaire,
       outputPath,
+      round: 2,
       port: 0,
       exitOnSubmit: false
     });
@@ -56,6 +57,7 @@ describe("local browser API", () => {
       await fetch(`${running.url}/api/questionnaire`)
     ).json();
     const submissionToken: string = transportQuestionnaire.submissionToken;
+    assert.equal(transportQuestionnaire.round, 2);
 
     const values = Object.fromEntries(
       questionnaire.questions.map((question) => [
@@ -114,7 +116,7 @@ describe("local browser API", () => {
         questionnaireId: questionnaire.metadata.id,
         questionnaireVersion: questionnaire.metadata.version,
         level: "standard",
-        round: 1,
+        round: 2,
         submittedAt: new Date().toISOString(),
         answers,
         changedFromRecommendations: ["sensitive-data"]
@@ -125,6 +127,7 @@ describe("local browser API", () => {
     assert.equal(result.status, "complete");
 
     const persisted = JSON.parse(await readFile(outputPath, "utf8"));
+    assert.equal(persisted.round, 2);
     assert.equal(persisted.answers["sensitive-data"].status, "deferred");
     assert.deepEqual(persisted.changedFromRecommendations, ["sensitive-data"]);
   });

@@ -17,7 +17,7 @@ The project is independently designed. It takes brief inspiration from the idea 
 3. **Uncertainty is explicit.** “Defer / unsure” records a temporary default, confidence, and concrete validation trigger. It is not an empty answer.
 4. **Short by construction.** Depth caps and stop rules prevent endless questioning. A second round is exceptional, bounded, and risk-driven.
 5. **Consequences stay visible.** The final design highlights only defaults that materially affect behavior, cost, or risk. A complete ledger remains available in an appendix.
-6. **Core and presentation are separate.** Language-neutral JSON artifacts carry questions and answers. User interfaces are adapters.
+6. **Core, adapter, and distribution are separate.** Language-neutral JSON artifacts carry questions and answers. User interfaces are adapters. The installable Agent Skill packages the operating instructions and a generated adapter runtime without changing either boundary.
 7. **Ordering is semantic.** Questions form a decision dependency DAG, not a flat checklist.
 8. **Local-first and inspectable.** The v1 adapter binds to loopback, loads no external services, and writes a readable local artifact.
 
@@ -48,7 +48,13 @@ stateDiagram-v2
 7. The Agent assesses the explicit round-two triggers. If needed, it emits one final questionnaire containing no more than 3–5 questions.
 8. The Agent produces the final output contract.
 
-The browser adapter implements steps 2–6. Generation, round-two reasoning, and final prose remain Agent responsibilities in v1.
+The browser adapter implements steps 2–6. Generation, round-two reasoning, and final prose remain Agent responsibilities. The installable skill tells a compatible Agent how to coordinate the complete workflow and invokes the bundled adapter.
+
+## Installable Agent Skill
+
+`skills/quicker-grill-me/` is the primary end-user distribution. It follows the open Agent Skills layout with `SKILL.md` plus optional scripts, assets, and references, and is installed in one command through the `skills` CLI. The installed directory contains all runtime JavaScript, fixed browser assets, contracts, example, and template needed to run with Node.js; it has no project-local package installation or TypeScript build step.
+
+The committed runtime is generated from `src/`, `public/`, `schema/`, and `examples/` by `tools/sync-skill.mjs`. A deterministic manifest records source mappings and hashes. Contributor checks compare generated files byte-for-byte so the installable package cannot silently drift from the reference implementation.
 
 ## Question selection
 
@@ -165,6 +171,7 @@ Runtime validation additionally checks invariants JSON Schema cannot convenientl
 - questionnaire identity and version match.
 
 TypeScript types in `src/types.ts` are the reference model, not a replacement for the JSON contracts.
+The skill carries generated copies under `skills/quicker-grill-me/references/` so an installer can copy only the skill directory.
 
 ## Adapter boundary
 
@@ -178,7 +185,7 @@ An adapter:
 
 Adapters may choose different page budgets and interaction surfaces. They must not raise depth caps, omit explicit defer metadata, reorder dependents before prerequisites, or silently repair invalid input.
 
-The v1 browser adapter uses a short-lived loopback HTTP server and vanilla HTML/CSS/JavaScript. A terminal or chat adapter can implement the same contract later.
+The browser adapter uses a short-lived loopback HTTP server and vanilla HTML/CSS/JavaScript. The installable skill ships its compiled dependency-free form. A terminal or chat adapter can implement the same contract later.
 
 ## Security and privacy
 
@@ -191,16 +198,19 @@ The v1 browser adapter uses a short-lived loopback HTTP server and vanilla HTML/
 - Write answers atomically to the caller-selected path.
 - Do not place secrets or customer content in questionnaires unless the adopting environment provides an appropriate local storage policy.
 
-## V1 scope
+## V1.1 scope
 
-V1 includes:
+V1.1 includes:
 
 - JSON contracts and strict runtime validation;
 - dependency ordering, depth filtering/caps, conditional visibility, and page grouping;
 - local browser adapter with recommendation, custom, defer, level switch, review, and submission;
 - local answer persistence and clear lifecycle output;
 - a validation CLI and example questionnaire;
-- documented non-browser fallback.
+- documented non-browser fallback;
+- open Agent Skills packaging with one-command installation;
+- generated, self-contained browser runtime and contracts inside the installed skill;
+- deterministic distribution synchronization and isolated-path packaging validation.
 
 ## Non-goals
 

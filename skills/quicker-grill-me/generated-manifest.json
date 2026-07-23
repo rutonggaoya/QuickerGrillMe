@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "tools/sync-skill.mjs",
+  "files": {
+    "scripts/runtime/adapter.js": {
+      "source": "dist/src/adapter.js",
+      "sha256": "201e7925fef29dd3ccf56dc1e4135be4c4ba787b534644564c4805236093c9a8"
+    },
+    "scripts/runtime/cli.js": {
+      "source": "dist/src/cli.js",
+      "sha256": "daa884b5d0b5a730153bcd1b471a019f48781985634701753e5a2c84b8469896"
+    },
+    "scripts/runtime/errors.js": {
+      "source": "dist/src/errors.js",
+      "sha256": "0aaf35ade0e9703eb4c1f30ff7621ef2c550341d4992c8617d5997d3c1d09147"
+    },
+    "scripts/runtime/index.js": {
+      "source": "dist/src/index.js",
+      "sha256": "0729f8c11976e936175b199067939e298c9a8fde78972ef668d0fbc614acf5f8"
+    },
+    "scripts/runtime/order.js": {
+      "source": "dist/src/order.js",
+      "sha256": "e66bca2dad3113a64ab83bd0c4962511bd1d4bae5b54294f39f37b31dd976dbc"
+    },
+    "scripts/runtime/paginate.js": {
+      "source": "dist/src/paginate.js",
+      "sha256": "53f2cb2f92e8eccc812dcb19265782d7855c63641c17020d54ef9c31f3908e3d"
+    },
+    "scripts/runtime/persistence.js": {
+      "source": "dist/src/persistence.js",
+      "sha256": "5167882f43a83b339b16b5fb800b96db21794e6e8e51b81e1e5867c82652d06a"
+    },
+    "scripts/runtime/select.js": {
+      "source": "dist/src/select.js",
+      "sha256": "e84f9f9a9e029f685b6d701b9dcce64254cbedb2cee800b093add9ea9745dae0"
+    },
+    "scripts/runtime/server.js": {
+      "source": "dist/src/server.js",
+      "sha256": "ae1951c47359286cf5148df3a8296541a94195fa986cda2b547669ef24db731c"
+    },
+    "scripts/runtime/types.js": {
+      "source": "dist/src/types.js",
+      "sha256": "1405b02b86ceb8b3a93da5d85a1ddd8bb3393d98a7b7cdb2aa32c22c17d8f1cc"
+    },
+    "scripts/runtime/validate.js": {
+      "source": "dist/src/validate.js",
+      "sha256": "3060e2a9a069577bdc87b5548188011a5f5975929447b49039a49844644b39c3"
+    },
+    "public/app.js": {
+      "source": "public/app.js",
+      "sha256": "8f67bf970b59ab73b651dd0e3eb5ee8c9df52ba6373def44b0a0350a859f29b6"
+    },
+    "public/index.html": {
+      "source": "public/index.html",
+      "sha256": "25d81da8862979ce034d80560b4eb9105b415caa8e6d3f8a524f09c52fde67ce"
+    },
+    "public/styles.css": {
+      "source": "public/styles.css",
+      "sha256": "75c10baf0819628202a5a748ef8c32ffec346c8d0b34dbd6182f8d7e5b8b9330"
+    },
+    "references/questionnaire.schema.json": {
+      "source": "schema/questionnaire.schema.json",
+      "sha256": "e140bdc7a888b447955a46b4f44bb70734d79c9e809592121877544427dae2da"
+    },
+    "references/answers.schema.json": {
+      "source": "schema/answers.schema.json",
+      "sha256": "36ddc100c055a731d243ac0d0e5aa47702041823617dd7f0efcee79d963e7ad9"
+    },
+    "assets/questionnaire.example.json": {
+      "source": "examples/questionnaire.json",
+      "sha256": "5f9369751836b4248e5ef2948f5811b55ed4c1709ba79fb3742086bf6503cbc7"
+    }
+  }
+}

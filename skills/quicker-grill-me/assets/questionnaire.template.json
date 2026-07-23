@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0",
+  "metadata": {
+    "id": "replace-with-design-id",
+    "title": "Replace with the design review title",
+    "description": "Replace with a concise explanation of the decision being reviewed.",
+    "version": "1.0.0",
+    "recommendedLevel": "standard"
+  },
+  "questions": [
+    {
+      "id": "replace-with-decision-id",
+      "prompt": "Replace with a question whose plausible answers materially change the design.",
+      "topic": "Scope",
+      "minLevel": "essential",
+      "complexity": 2,
+      "dependsOn": [],
+      "stage": "goals",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "recommended-path",
+          "label": "Recommended path",
+          "description": "Replace with the concrete behavior and consequence."
+        },
+        {
+          "id": "alternative-path",
+          "label": "Alternative path",
+          "description": "Replace with the materially different behavior and consequence."
+        }
+      ],
+      "recommendedOptionId": "recommended-path",
+      "recommendationRationale": "Replace with a context-specific rationale.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "recommended-path",
+        "confidence": "low",
+        "validationTrigger": "Replace with an observable event or planned check."
+      },
+      "allowCustom": true,
+      "affectedDecisions": [
+        "Replace with the architecture, behavior, cost, risk, or scope decision affected."
+      ]
+    }
+  ]
+}

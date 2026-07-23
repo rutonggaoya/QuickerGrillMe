@@ -1,82 +1,61 @@
 # QuickerGrillMe
 
-QuickerGrillMe is a local, decision-focused design questionnaire for coding Agents and developers. It asks only questions whose plausible answers materially change a design, preselects a recommendation for every question, and records uncertainty as an explicit temporary default with a validation trigger.
-
-## Requirements
-
-- Node.js 20 or newer
-
-## Setup
-
-```powershell
-npm install
-npm run build
-```
-
-Validate the included 21-question example:
-
-```powershell
-npm run validate:example
-```
-
-Launch the local browser workflow:
-
-```powershell
-npm start
-```
-
-The CLI binds only to `127.0.0.1`, opens the browser, writes `answers.json` after submission, and then stops. The page makes no external requests.
-
-## CLI
+Install the cross-agent skill from this repository:
 
 ```text
-quickergrillme validate <questionnaire.json>
-quickergrillme serve <questionnaire.json> [options]
-
---output <path>  Answer destination (default: ./answers.json)
---port <number>  Local port; omitted to choose an available port
---no-open        Print the URL without opening a browser
---keep-open      Continue serving after submission
+npx skills add rutonggaoya/QuickerGrillMe --skill quicker-grill-me
 ```
 
-During development, use `node dist/src/cli.js` in place of the installed command:
+Invoke it as:
 
-```powershell
-node dist/src/cli.js serve examples/questionnaire.json --output .\tmp\answers.json --no-open
+```text
+/quicker-grill-me
 ```
 
-## Workflow
+If the host does not support slash invocation, say: **Use the quicker-grill-me skill to stress-test this design before implementation.**
 
-1. An Agent generates a questionnaire conforming to [`schema/questionnaire.schema.json`](schema/questionnaire.schema.json).
-2. `quickergrillme validate` reports structural, reference, recommendation, and dependency errors.
-3. `quickergrillme serve` renders the questionnaire. The user can switch depth, accept recommendations unchanged, choose another option, enter a custom answer, or defer.
-4. The review shows only answers changed from recommendations.
-5. Submission writes an artifact conforming to [`schema/answers.schema.json`](schema/answers.schema.json).
-6. The Agent reads the answers and writes the complete design, decision summary, material defaults/assumptions, deferred validation items, and full default-ledger appendix.
-7. The Agent may generate one final 3–5 question round only for contradictions, invalidated premises, or unresolved high-risk unknowns.
+The Agent inspects the proposal and available code for factual context, generates only questions whose answers materially change the design, and opens the bundled local questionnaire automatically. The questionnaire preselects recommendations, records explicit temporary defaults for deferred decisions, saves the answer artifact locally, and closes. End users do not clone the repository, install project dependencies, or compile TypeScript.
 
-See [`DESIGN.md`](DESIGN.md) for the complete product and architecture specification.
+QuickerGrillMe is local-only and lightweight. The runtime binds to `127.0.0.1`, serves fixed bundled assets, makes no external browser requests, and writes a readable JSON answer artifact.
 
-## Example coverage
+## What the skill produces
 
-[`examples/questionnaire.json`](examples/questionnaire.json) demonstrates:
+After at most two bounded questionnaire rounds, the Agent produces:
 
-- Essential, Standard, and Deep depth switching;
-- dependency-DAG ordering and stage progression;
-- conditional questions that appear or disappear after upstream changes;
-- complexity-weighted pages rather than fixed questions per page;
-- recommendation rationale and confidence;
-- custom answers and defer metadata;
-- high-impact decisions and affected-design annotations.
+- a complete reconciled design;
+- a decision summary and material consequences;
+- material defaults and assumptions;
+- deferred validation items with temporary defaults and triggers;
+- a full default-ledger appendix.
 
-## Non-browser fallback
+The Agent stops before implementation and asks the user to confirm shared understanding.
 
-The JSON contracts are the integration boundary. In a host that cannot open a loopback browser, an Agent can present the ordered questions in chat or another UI, ask the user only for changes from the preselected recommendations, preserve defer metadata, and write the same `answers.json` structure. The depth caps, dependencies, two-round limit, and stop rules still apply.
+## Update or remove
 
-## Development
+The `skills` CLI can update or remove the installed skill:
 
-```powershell
+```text
+npx skills update quicker-grill-me
+npx skills remove quicker-grill-me
+```
+
+## Contributor development
+
+The TypeScript/Node project is the reference implementation. Contributors need Node.js 20 or newer:
+
+```text
+npm ci
+npm run build:skill
 npm test
 ```
 
-The test suite covers runtime validation, DAG ordering, visibility and depth caps, page complexity grouping, atomic persistence, and the local HTTP preview/submission flow.
+`npm run build:skill` compiles the source and deterministically synchronizes the committed, dependency-free distribution under [`skills/quicker-grill-me/`](skills/quicker-grill-me/). `npm test` fails when that generated runtime or its fixed assets/contracts are stale. The suite also copies the installed skill to an isolated path containing spaces, launches its bundled CLI without `node_modules`, submits through the browser API, verifies atomic persistence, and checks clean shutdown.
+
+Additional source commands:
+
+```text
+npm run validate:example
+npm start
+```
+
+The language-neutral contracts live in [`schema/`](schema/), and [`DESIGN.md`](DESIGN.md) describes the core, browser adapter, installable Agent Skill package, depth caps, stop rules, and security model.

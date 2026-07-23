@@ -1,0 +1,898 @@
+{
+  "schemaVersion": "1.0",
+  "metadata": {
+    "id": "quickergrillme-v1-design",
+    "title": "Shape the first QuickerGrillMe release",
+    "description": "Confirm only the choices that materially change product behavior, architecture, cost, or risk. Every question starts with an Agent recommendation.",
+    "version": "1.0.0",
+    "recommendedLevel": "standard",
+    "generatedAt": "2026-07-21T09:00:00Z"
+  },
+  "questions": [
+    {
+      "id": "design-goal",
+      "prompt": "What should the first release optimize for?",
+      "topic": "Goals and boundaries",
+      "minLevel": "essential",
+      "complexity": 2,
+      "dependsOn": [],
+      "stage": "goals",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "fast-decisions",
+          "label": "Fast consequential decisions",
+          "description": "Minimize effort while surfacing choices that materially alter the design."
+        },
+        {
+          "id": "maximum-coverage",
+          "label": "Maximum issue coverage",
+          "description": "Favor broader interrogation even when many answers are unlikely to change the design."
+        },
+        {
+          "id": "documentation-first",
+          "label": "Documentation completeness",
+          "description": "Optimize primarily for producing a comprehensive written artifact."
+        }
+      ],
+      "recommendedOptionId": "fast-decisions",
+      "recommendationRationale": "The product is differentiated by disciplined restraint rather than exhaustive questioning.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "fast-decisions",
+        "confidence": "high",
+        "validationTrigger": "Revisit if users frequently add major decisions after completing the questionnaire."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["question selection policy", "stop rules", "success metrics"]
+    },
+    {
+      "id": "primary-user",
+      "prompt": "Who is the primary v1 operator?",
+      "topic": "Goals and boundaries",
+      "minLevel": "essential",
+      "complexity": 1,
+      "dependsOn": ["design-goal"],
+      "stage": "goals",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "agent-assisted-developer",
+          "label": "Agent-assisted developer",
+          "description": "A developer and coding Agent collaborate on a design before implementation."
+        },
+        {
+          "id": "product-team",
+          "label": "Cross-functional product team",
+          "description": "Several people jointly answer and approve the questionnaire."
+        },
+        {
+          "id": "autonomous-agent",
+          "label": "Autonomous Agent",
+          "description": "The Agent uses the workflow without a person reviewing every answer."
+        }
+      ],
+      "recommendedOptionId": "agent-assisted-developer",
+      "recommendationRationale": "The browser review and local artifact workflow are designed for a developer-Agent pair.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "agent-assisted-developer",
+        "confidence": "medium",
+        "validationTrigger": "Validate with the first five real workflows and note who actually edits answers."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["interaction model", "terminology", "collaboration scope"]
+    },
+    {
+      "id": "scope-boundary",
+      "prompt": "Which responsibility belongs outside the v1 core?",
+      "topic": "Goals and boundaries",
+      "minLevel": "essential",
+      "complexity": 2,
+      "dependsOn": ["design-goal"],
+      "stage": "goals",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "design-generation",
+          "label": "Final design generation",
+          "description": "The core captures decisions; the calling Agent writes the final design document."
+        },
+        {
+          "id": "question-generation",
+          "label": "Question generation",
+          "description": "The core only displays a fully prepared questionnaire."
+        },
+        {
+          "id": "nothing",
+          "label": "Nothing",
+          "description": "The core generates questions, collects answers, and writes the final design."
+        }
+      ],
+      "recommendedOptionId": "design-generation",
+      "recommendationRationale": "Keeping prose generation with the Agent preserves a language-agnostic, lightweight core.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "design-generation",
+        "confidence": "high",
+        "validationTrigger": "Revisit when a second Agent integration cannot reliably consume answers.json."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["core boundary", "adapter contract", "output workflow"]
+    },
+    {
+      "id": "success-threshold",
+      "prompt": "What is the minimum evidence that the questionnaire is working?",
+      "topic": "Goals and boundaries",
+      "minLevel": "essential",
+      "complexity": 1,
+      "dependsOn": ["design-goal"],
+      "stage": "goals",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "material-changes",
+          "label": "Material design changes",
+          "description": "Changed answers lead to visibly different architecture, behavior, cost, or risk decisions."
+        },
+        {
+          "id": "completion-rate",
+          "label": "High completion rate",
+          "description": "Most users submit the questionnaire without abandoning it."
+        },
+        {
+          "id": "question-volume",
+          "label": "Questions answered",
+          "description": "Success is measured mainly by the number of issues considered."
+        }
+      ],
+      "recommendedOptionId": "material-changes",
+      "recommendationRationale": "The counterfactual test is the product's core quality bar.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "material-changes",
+        "confidence": "medium",
+        "validationTrigger": "Compare recommendation changes with resulting design diffs across ten uses."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["evaluation plan", "question quality metrics"]
+    },
+    {
+      "id": "delivery-shape",
+      "prompt": "How should users complete the questionnaire in v1?",
+      "topic": "Architecture",
+      "minLevel": "essential",
+      "complexity": 3,
+      "dependsOn": ["primary-user", "scope-boundary"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "local-browser",
+          "label": "Local browser form",
+          "description": "A local-only server renders a focused multi-page questionnaire."
+        },
+        {
+          "id": "terminal",
+          "label": "Terminal prompts",
+          "description": "Questions are presented sequentially in the command line."
+        },
+        {
+          "id": "hosted-web",
+          "label": "Hosted web application",
+          "description": "A remote service stores questionnaires and responses."
+        }
+      ],
+      "recommendedOptionId": "local-browser",
+      "recommendationRationale": "A local form reduces conversational overhead without introducing service infrastructure.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "local-browser",
+        "confidence": "high",
+        "validationTrigger": "Revisit if target Agent environments cannot open or reach a loopback URL."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["adapter implementation", "security boundary", "interaction flow"]
+    },
+    {
+      "id": "persistence-model",
+      "prompt": "Where should submitted answers be stored?",
+      "topic": "Architecture",
+      "minLevel": "essential",
+      "complexity": 2,
+      "dependsOn": ["delivery-shape"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "local-json",
+          "label": "Local JSON artifact",
+          "description": "Write a portable answers.json file chosen by the caller."
+        },
+        {
+          "id": "memory-only",
+          "label": "Memory only",
+          "description": "Return answers to the current process without a persistent artifact."
+        },
+        {
+          "id": "database",
+          "label": "Database",
+          "description": "Store responses in a managed local or remote database."
+        }
+      ],
+      "recommendedOptionId": "local-json",
+      "recommendationRationale": "JSON is inspectable, language-neutral, versionable, and easy for an Agent to consume.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "local-json",
+        "confidence": "high",
+        "validationTrigger": "Revisit if concurrent editing or response history becomes a requirement."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["answer contract", "server lifecycle", "integration workflow"]
+    },
+    {
+      "id": "failure-posture",
+      "prompt": "What should happen when a questionnaire is structurally invalid?",
+      "topic": "Risk and operations",
+      "minLevel": "essential",
+      "complexity": 2,
+      "dependsOn": ["persistence-model"],
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "fail-clearly",
+          "label": "Fail with actionable errors",
+          "description": "Do not launch; report every safely detectable schema and dependency issue."
+        },
+        {
+          "id": "best-effort",
+          "label": "Render best effort",
+          "description": "Skip invalid fields and show whatever can still be interpreted."
+        },
+        {
+          "id": "agent-repair",
+          "label": "Repair automatically",
+          "description": "Mutate invalid input into a form the adapter can render."
+        }
+      ],
+      "recommendedOptionId": "fail-clearly",
+      "recommendationRationale": "Silent repairs can conceal design omissions and produce success-shaped but unreliable output.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "fail-clearly",
+        "confidence": "high",
+        "validationTrigger": "Review validation failures after several generated questionnaires for overly strict rules."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["runtime validation", "error handling", "CLI exit behavior"]
+    },
+    {
+      "id": "collaboration-model",
+      "prompt": "Does the local browser need multi-user collaboration?",
+      "topic": "Architecture",
+      "minLevel": "standard",
+      "complexity": 2,
+      "dependsOn": ["delivery-shape"],
+      "visibleWhen": {
+        "all": [
+          {
+            "questionId": "delivery-shape",
+            "operator": "equals",
+            "value": "local-browser"
+          }
+        ]
+      },
+      "stage": "architecture",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "single-user",
+          "label": "Single local user",
+          "description": "One browser session completes one answer artifact."
+        },
+        {
+          "id": "shared-session",
+          "label": "Shared live session",
+          "description": "Multiple people can edit the same questionnaire concurrently."
+        },
+        {
+          "id": "review-only",
+          "label": "Shareable review only",
+          "description": "One person edits while others receive an exported review artifact."
+        }
+      ],
+      "recommendedOptionId": "single-user",
+      "recommendationRationale": "Collaboration infrastructure would dominate the first release without proving the core decision model.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "single-user",
+        "confidence": "medium",
+        "validationTrigger": "Track requests to co-edit the same questionnaire during early usage."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["server state", "concurrency", "authentication"]
+    },
+    {
+      "id": "extension-boundary",
+      "prompt": "How should additional user interfaces integrate with the core?",
+      "topic": "Architecture",
+      "minLevel": "standard",
+      "complexity": 3,
+      "dependsOn": ["delivery-shape", "persistence-model"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "json-contract",
+          "label": "JSON contract and adapter interface",
+          "description": "Adapters consume questionnaire JSON and produce answers JSON."
+        },
+        {
+          "id": "typescript-api",
+          "label": "TypeScript API only",
+          "description": "Adapters link directly against the reference implementation."
+        },
+        {
+          "id": "http-api",
+          "label": "HTTP API",
+          "description": "All integrations communicate with a long-running service."
+        }
+      ],
+      "recommendedOptionId": "json-contract",
+      "recommendationRationale": "Language-neutral artifacts preserve cross-Agent portability while TypeScript remains the reference.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "json-contract",
+        "confidence": "high",
+        "validationTrigger": "Implement a second adapter and record any contract gaps."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["schema stability", "adapter API", "packaging"]
+    },
+    {
+      "id": "answer-update",
+      "prompt": "How should upstream answer changes affect dependent questions?",
+      "topic": "Core behavior",
+      "minLevel": "standard",
+      "complexity": 3,
+      "dependsOn": ["extension-boundary"],
+      "stage": "behavior",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "recompute",
+          "label": "Recompute and hide invalidated questions",
+          "description": "Re-evaluate visibility and ordering while retaining hidden answers in memory."
+        },
+        {
+          "id": "freeze",
+          "label": "Freeze the initial form",
+          "description": "Keep all originally shown questions regardless of answer changes."
+        },
+        {
+          "id": "clear",
+          "label": "Recompute and discard",
+          "description": "Remove answers for every question that becomes hidden."
+        }
+      ],
+      "recommendedOptionId": "recompute",
+      "recommendationRationale": "Dynamic visibility respects the decision DAG while retaining work if a user changes back.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "recompute",
+        "confidence": "medium",
+        "validationTrigger": "Observe whether hidden retained answers surprise users during submission review."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["visibility engine", "client state", "submission filtering"]
+    },
+    {
+      "id": "round-two-trigger",
+      "prompt": "What should trigger a second question round?",
+      "topic": "Core behavior",
+      "minLevel": "standard",
+      "complexity": 3,
+      "dependsOn": ["answer-update"],
+      "stage": "behavior",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "risk-only",
+          "label": "Conflicts, invalid premises, or high-risk unknowns",
+          "description": "Ask at most 3–5 follow-ups only when one of the explicit risk triggers remains."
+        },
+        {
+          "id": "any-change",
+          "label": "Any changed recommendation",
+          "description": "Follow up whenever the user differs from an Agent recommendation."
+        },
+        {
+          "id": "always",
+          "label": "Always ask a second round",
+          "description": "Use a confirmation round after every initial submission."
+        }
+      ],
+      "recommendedOptionId": "risk-only",
+      "recommendationRationale": "A changed answer is informative but does not itself justify more questioning.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "risk-only",
+        "confidence": "high",
+        "validationTrigger": "Revisit if consequential contradictions regularly escape round one."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["state machine", "stop conditions", "Agent handoff"]
+    },
+    {
+      "id": "sensitive-data",
+      "prompt": "What sensitivity should the local artifacts assume?",
+      "topic": "Risk and operations",
+      "minLevel": "standard",
+      "complexity": 2,
+      "dependsOn": ["persistence-model"],
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "internal-design",
+          "label": "Internal design information",
+          "description": "May contain non-public architecture details but no secrets or customer content."
+        },
+        {
+          "id": "public",
+          "label": "Public information only",
+          "description": "Questionnaires are safe to publish without review."
+        },
+        {
+          "id": "restricted",
+          "label": "Restricted or customer data",
+          "description": "Artifacts may contain regulated, secret, or customer-provided content."
+        }
+      ],
+      "recommendedOptionId": "internal-design",
+      "recommendationRationale": "Local-only storage reduces exposure, but generated design inputs commonly contain internal details.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "internal-design",
+        "confidence": "low",
+        "validationTrigger": "Classify representative questionnaires under the adopting organization's data policy."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["security guidance", "artifact handling", "logging"]
+    },
+    {
+      "id": "observability",
+      "prompt": "What operational signal is needed in v1?",
+      "topic": "Risk and operations",
+      "minLevel": "standard",
+      "complexity": 1,
+      "dependsOn": ["failure-posture"],
+      "stage": "risk",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "console-events",
+          "label": "Clear local console events",
+          "description": "Report URL, validation failures, submission path, and shutdown."
+        },
+        {
+          "id": "structured-logs",
+          "label": "Structured local logs",
+          "description": "Persist machine-readable request and lifecycle events."
+        },
+        {
+          "id": "telemetry",
+          "label": "Remote telemetry",
+          "description": "Send usage and performance data to a managed service."
+        }
+      ],
+      "recommendedOptionId": "console-events",
+      "recommendationRationale": "Lifecycle clarity is sufficient for a short-lived local process and avoids data collection.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "console-events",
+        "confidence": "high",
+        "validationTrigger": "Add structured logs if failures cannot be diagnosed from CLI output."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["CLI output", "privacy", "supportability"]
+    },
+    {
+      "id": "schema-versioning",
+      "prompt": "How should contract changes be introduced?",
+      "topic": "Architecture",
+      "minLevel": "deep",
+      "complexity": 3,
+      "dependsOn": ["extension-boundary"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "explicit-version",
+          "label": "Explicit schema version",
+          "description": "Reject unsupported major versions and evolve minor fields compatibly."
+        },
+        {
+          "id": "best-effort",
+          "label": "Best-effort compatibility",
+          "description": "Ignore unknown fields and infer missing ones where possible."
+        },
+        {
+          "id": "package-lockstep",
+          "label": "Package lockstep",
+          "description": "Require producer and adapter to use exactly the same release."
+        }
+      ],
+      "recommendedOptionId": "explicit-version",
+      "recommendationRationale": "Artifacts can outlive a process, so version intent must travel with the data.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "explicit-version",
+        "confidence": "medium",
+        "validationTrigger": "Define migration rules before shipping the first breaking contract change."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["compatibility policy", "runtime validation", "adapter upgrades"]
+    },
+    {
+      "id": "concurrent-editing",
+      "prompt": "How should simultaneous edits be reconciled?",
+      "topic": "Core behavior",
+      "minLevel": "deep",
+      "complexity": 4,
+      "dependsOn": ["collaboration-model"],
+      "visibleWhen": {
+        "all": [
+          {
+            "questionId": "collaboration-model",
+            "operator": "equals",
+            "value": "shared-session"
+          }
+        ]
+      },
+      "stage": "behavior",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "last-write",
+          "label": "Last write wins",
+          "description": "The latest accepted update replaces earlier state."
+        },
+        {
+          "id": "optimistic-lock",
+          "label": "Optimistic locking",
+          "description": "Reject stale updates and ask the editor to reconcile."
+        },
+        {
+          "id": "merge",
+          "label": "Field-level merge",
+          "description": "Combine non-overlapping updates and surface direct conflicts."
+        }
+      ],
+      "recommendedOptionId": "optimistic-lock",
+      "recommendationRationale": "If collaboration is selected, explicit conflict handling is safer than silent overwrite.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "optimistic-lock",
+        "confidence": "low",
+        "validationTrigger": "Prototype with two concurrent editors before committing to a collaboration model."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["state synchronization", "API semantics", "conflict UX"]
+    },
+    {
+      "id": "conditional-recompute",
+      "prompt": "When should visibility conditions be re-evaluated?",
+      "topic": "Core behavior",
+      "minLevel": "deep",
+      "complexity": 3,
+      "dependsOn": ["answer-update"],
+      "stage": "behavior",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "every-change",
+          "label": "After every answer change",
+          "description": "Refresh pages immediately from current answer values."
+        },
+        {
+          "id": "page-transition",
+          "label": "On page transition",
+          "description": "Keep the current page stable and recompute before navigation."
+        },
+        {
+          "id": "submission",
+          "label": "Only at submission",
+          "description": "Validate dependencies after the user finishes all visible pages."
+        }
+      ],
+      "recommendedOptionId": "every-change",
+      "recommendationRationale": "The local dataset is small, and immediate feedback prevents users answering invalidated questions.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "every-change",
+        "confidence": "high",
+        "validationTrigger": "Measure responsiveness on a 25-question deep questionnaire."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["preview API", "client rendering", "state retention"]
+    },
+    {
+      "id": "partial-submission",
+      "prompt": "Should users be able to submit unanswered visible questions?",
+      "topic": "Core behavior",
+      "minLevel": "deep",
+      "complexity": 2,
+      "dependsOn": ["round-two-trigger"],
+      "stage": "behavior",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "explicit-defer-only",
+          "label": "Only with explicit defer",
+          "description": "Every visible question is answered or carries a temporary default and validation trigger."
+        },
+        {
+          "id": "allow-empty",
+          "label": "Allow empty answers",
+          "description": "Missing answers are accepted without a recorded default."
+        },
+        {
+          "id": "high-impact-only",
+          "label": "Require high-impact only",
+          "description": "Lower-impact questions can remain empty."
+        }
+      ],
+      "recommendedOptionId": "explicit-defer-only",
+      "recommendationRationale": "Explicit defer distinguishes intentional uncertainty from accidental omission.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "explicit-defer-only",
+        "confidence": "high",
+        "validationTrigger": "Review whether mandatory low-impact answers create avoidable friction."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["submission validation", "stop conditions", "answer schema"]
+    },
+    {
+      "id": "accessibility-target",
+      "prompt": "What accessibility baseline should the browser adapter meet?",
+      "topic": "Risk and operations",
+      "minLevel": "deep",
+      "complexity": 2,
+      "dependsOn": ["delivery-shape"],
+      "stage": "risk",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "semantic-keyboard",
+          "label": "Semantic and keyboard operable",
+          "description": "Use native controls, visible focus, labels, and screen-reader-friendly status updates."
+        },
+        {
+          "id": "visual-only",
+          "label": "Visual usability only",
+          "description": "Prioritize pointer-based desktop interaction for the prototype."
+        },
+        {
+          "id": "formal-aa",
+          "label": "Formal WCAG AA audit",
+          "description": "Block release on a full independent conformance assessment."
+        }
+      ],
+      "recommendedOptionId": "semantic-keyboard",
+      "recommendationRationale": "Native controls provide a strong lightweight baseline without turning v1 into a compliance program.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "semantic-keyboard",
+        "confidence": "medium",
+        "validationTrigger": "Run keyboard and screen-reader smoke tests before the first tagged release."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["HTML structure", "interaction design", "release checklist"]
+    },
+    {
+      "id": "threat-model",
+      "prompt": "What is the most important local-server threat to address?",
+      "topic": "Risk and operations",
+      "minLevel": "deep",
+      "complexity": 4,
+      "dependsOn": ["sensitive-data"],
+      "visibleWhen": {
+        "all": [
+          {
+            "questionId": "sensitive-data",
+            "operator": "not-equals",
+            "value": "public"
+          }
+        ]
+      },
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "network-exposure",
+          "label": "Accidental network exposure",
+          "description": "Bind only to loopback and avoid external resources."
+        },
+        {
+          "id": "malicious-questionnaire",
+          "label": "Malicious questionnaire content",
+          "description": "Prevent generated prompts from executing as browser markup or script."
+        },
+        {
+          "id": "local-file-access",
+          "label": "Arbitrary local file access",
+          "description": "Constrain output paths and static file serving."
+        }
+      ],
+      "recommendedOptionId": "network-exposure",
+      "recommendationRationale": "Loopback-only binding is the primary architectural security boundary; safe DOM rendering remains mandatory.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "network-exposure",
+        "confidence": "medium",
+        "validationTrigger": "Perform a focused threat review before distributing the CLI beyond local development."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["server binding", "content security policy", "file handling"]
+    },
+    {
+      "id": "answer-retention",
+      "prompt": "How long should the tool retain submitted answers?",
+      "topic": "Risk and operations",
+      "minLevel": "deep",
+      "complexity": 2,
+      "dependsOn": ["sensitive-data"],
+      "stage": "risk",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "caller-owned",
+          "label": "Caller-owned lifecycle",
+          "description": "Write the requested file and leave retention to the repository or workspace policy."
+        },
+        {
+          "id": "auto-delete",
+          "label": "Automatic deletion",
+          "description": "Delete answers after the Agent consumes them."
+        },
+        {
+          "id": "history",
+          "label": "Built-in response history",
+          "description": "Retain timestamped submissions for comparison."
+        }
+      ],
+      "recommendedOptionId": "caller-owned",
+      "recommendationRationale": "A CLI should not silently delete or retain artifacts outside the caller's established workflow.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "caller-owned",
+        "confidence": "medium",
+        "validationTrigger": "Document adopting-team retention expectations before handling restricted data."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["file lifecycle", "privacy documentation", "history features"]
+    },
+    {
+      "id": "dependency-failure",
+      "prompt": "How should the core handle a dependency cycle?",
+      "topic": "Risk and operations",
+      "minLevel": "deep",
+      "complexity": 3,
+      "dependsOn": ["failure-posture", "schema-versioning"],
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "reject-cycle",
+          "label": "Reject with cycle members",
+          "description": "Fail validation and identify the questions participating in the cycle."
+        },
+        {
+          "id": "source-order",
+          "label": "Fall back to source order",
+          "description": "Ignore dependency edges when a cycle is found."
+        },
+        {
+          "id": "remove-edge",
+          "label": "Remove an edge automatically",
+          "description": "Break the cycle using a deterministic but implicit rule."
+        }
+      ],
+      "recommendedOptionId": "reject-cycle",
+      "recommendationRationale": "A cycle represents ambiguous decision prerequisites and should be repaired by the questionnaire producer.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "reject-cycle",
+        "confidence": "high",
+        "validationTrigger": "Review generated cycle errors to improve Agent-side questionnaire construction."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["DAG validation", "error messages", "producer guidance"]
+    },
+    {
+      "id": "packaging",
+      "prompt": "How should the reference implementation be distributed first?",
+      "topic": "Implementation",
+      "minLevel": "deep",
+      "complexity": 1,
+      "dependsOn": ["schema-versioning", "observability"],
+      "stage": "implementation",
+      "impact": "low",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "node-package",
+          "label": "Node CLI package",
+          "description": "Build to JavaScript and expose a conventional executable."
+        },
+        {
+          "id": "source-only",
+          "label": "Source checkout only",
+          "description": "Require TypeScript tooling and repository access."
+        },
+        {
+          "id": "standalone-binary",
+          "label": "Standalone binary",
+          "description": "Bundle a platform-specific executable."
+        }
+      ],
+      "recommendedOptionId": "node-package",
+      "recommendationRationale": "The target environments already run Agents with Node, and package distribution adds little machinery.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "node-package",
+        "confidence": "medium",
+        "validationTrigger": "Validate installation friction in one environment that does not have a TypeScript toolchain."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["package metadata", "build output", "installation docs"]
+    }
+  ]
+}

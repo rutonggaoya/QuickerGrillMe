@@ -11,6 +11,7 @@ interface ParsedArguments {
   command: "serve" | "validate" | "help";
   questionnairePath: string;
   outputPath: string;
+  round: 1 | 2;
   port?: number;
   openBrowser: boolean;
   exitOnSubmit: boolean;
@@ -25,6 +26,7 @@ Usage:
 
 Options:
   --output <path>   Answer file path (default: ./answers.json)
+  --round <1|2>     Questionnaire round (default: 1)
   --port <number>   Local port (default: automatically selected)
   --no-open         Print the URL without opening a browser
   --keep-open       Keep serving after a successful submission
@@ -50,6 +52,7 @@ function parseArguments(argumentsList: string[]): ParsedArguments {
       command: "help",
       questionnairePath: "",
       outputPath: "",
+      round: 1,
       openBrowser: false,
       exitOnSubmit: true
     };
@@ -72,11 +75,17 @@ function parseArguments(argumentsList: string[]): ParsedArguments {
   ) {
     throw new Error("--port must be an integer from 0 through 65535");
   }
+  const roundValue = optionValue(argumentsList, "--round");
+  const round = roundValue === undefined ? 1 : Number(roundValue);
+  if (round !== 1 && round !== 2) {
+    throw new Error("--round must be 1 or 2");
+  }
 
   return {
     command: commandValue,
     questionnairePath: resolve(questionnaireArgument),
     outputPath: resolve(optionValue(argumentsList, "--output") ?? "answers.json"),
+    round,
     ...(port === undefined ? {} : { port }),
     openBrowser: !argumentsList.includes("--no-open"),
     exitOnSubmit: !argumentsList.includes("--keep-open")
@@ -130,6 +139,7 @@ async function main(): Promise<void> {
   const running = await startQuestionnaireServer({
     questionnaire,
     outputPath: argumentsParsed.outputPath,
+    round: argumentsParsed.round,
     ...(argumentsParsed.port === undefined ? {} : { port: argumentsParsed.port }),
     exitOnSubmit: argumentsParsed.exitOnSubmit,
     onSubmitted: (outputPath) => {

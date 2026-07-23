@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quickergrillme.local/schema/questionnaire.schema.json",
+  "title": "QuickerGrillMe Questionnaire",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "metadata", "questions"],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "version",
+        "recommendedLevel"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "$ref": "#/$defs/nonEmptyString" },
+        "version": { "$ref": "#/$defs/nonEmptyString" },
+        "recommendedLevel": { "$ref": "#/$defs/depthLevel" },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "depthLevel": {
+      "enum": ["essential", "standard", "deep"]
+    },
+    "confidence": {
+      "enum": ["low", "medium", "high"]
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questionId", "operator", "value"],
+      "properties": {
+        "questionId": { "$ref": "#/$defs/nonEmptyString" },
+        "operator": {
+          "enum": ["equals", "not-equals", "includes"]
+        },
+        "value": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "visibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["all"] },
+        { "required": ["any"] }
+      ],
+      "properties": {
+        "all": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/condition" }
+        },
+        "any": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "defer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed",
+        "confidence",
+        "validationTrigger"
+      ],
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "temporaryDefaultOptionId": { "$ref": "#/$defs/nonEmptyString" },
+        "temporaryDefaultOptionIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "validationTrigger": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "prompt",
+        "topic",
+        "minLevel",
+        "complexity",
+        "dependsOn",
+        "stage",
+        "impact",
+        "questionType",
+        "options",
+        "recommendationRationale",
+        "confidence",
+        "defer",
+        "allowCustom",
+        "affectedDecisions"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "prompt": { "$ref": "#/$defs/nonEmptyString" },
+        "topic": { "$ref": "#/$defs/nonEmptyString" },
+        "minLevel": { "$ref": "#/$defs/depthLevel" },
+        "complexity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "visibleWhen": { "$ref": "#/$defs/visibility" },
+        "stage": {
+          "enum": [
+            "goals",
+            "architecture",
+            "behavior",
+            "risk",
+            "implementation"
+          ]
+        },
+        "impact": {
+          "enum": ["low", "medium", "high"]
+        },
+        "questionType": {
+          "enum": ["single-choice", "multiple-choice"]
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/option" }
+        },
+        "recommendedOptionId": { "$ref": "#/$defs/nonEmptyString" },
+        "recommendedOptionIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "recommendationRationale": { "$ref": "#/$defs/nonEmptyString" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "defer": { "$ref": "#/$defs/defer" },
+        "allowCustom": { "type": "boolean" },
+        "affectedDecisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "questionType": { "const": "single-choice" }
+            }
+          },
+          "then": {
+            "required": ["recommendedOptionId"],
+            "not": { "required": ["recommendedOptionIds"] }
+          },
+          "else": {
+            "required": ["recommendedOptionIds"],
+            "not": { "required": ["recommendedOptionId"] }
+          }
+        }
+      ]
+    }
+  }
+}

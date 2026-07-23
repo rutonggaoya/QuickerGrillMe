@@ -1,3 +1,4 @@
+// Generated from public/app.js by tools/sync-skill.mjs. Do not edit.
 const app = document.querySelector("#app");
 
 const state = {

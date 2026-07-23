@@ -30,6 +30,7 @@ function isDepthLevel(value: unknown): value is DepthLevel {
 export interface QuestionnaireServerOptions {
   questionnaire: Questionnaire;
   outputPath: string;
+  round?: 1 | 2;
   port?: number;
   exitOnSubmit?: boolean;
   onSubmitted?: (outputPath: string) => void;
@@ -199,6 +200,7 @@ export function createQuestionnaireServer(options: QuestionnaireServerOptions): 
       sendJson(response, 200, {
         ...options.questionnaire,
         questions: orderQuestions(options.questionnaire.questions),
+        round: options.round ?? 1,
         submissionToken: requestToken
       });
       return;
