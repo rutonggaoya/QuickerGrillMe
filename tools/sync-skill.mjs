@@ -40,10 +40,20 @@ async function generatedContent(sourcePath, targetPath) {
   return `${header}${source}`;
 }
 
-const compiledFiles = (await readdir(resolve(repositoryRoot, "dist", "src")))
-  .filter((name) => name.endsWith(".js"))
-  .sort()
-  .map((name) => ({
+const runtimeFileNames = [
+  "cli.js",
+  "errors.js",
+  "order.js",
+  "paginate.js",
+  "persistence.js",
+  "review.js",
+  "select.js",
+  "server.js",
+  "types.js",
+  "validate.js"
+];
+
+const compiledFiles = runtimeFileNames.map((name) => ({
     source: `dist/src/${name}`,
     target: `scripts/runtime/${name}`
   }));

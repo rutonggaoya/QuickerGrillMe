@@ -15,7 +15,6 @@
   },
   "files": [
     "dist/src",
-    "skills",
     "public",
     "schema",
     "examples",
@@ -29,7 +28,7 @@
     "check:web": "tsc -p tsconfig.web.json",
     "build:skill": "npm run build && node tools/sync-skill.mjs --write",
     "check:skill": "npm run build && node tools/sync-skill.mjs --check",
-    "prepack": "npm run build:skill",
+    "prepack": "npm run build",
     "test": "npm run build && node tools/sync-skill.mjs --check && node --test \"dist/test/*.test.js\"",
     "validate:example": "npm run build && node dist/src/cli.js validate examples/questionnaire.json",
     "start": "npm run build && node dist/src/cli.js serve examples/questionnaire.json"

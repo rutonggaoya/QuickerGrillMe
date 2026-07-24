@@ -2,10 +2,6 @@
   "schemaVersion": 1,
   "generatedBy": "tools/sync-skill.mjs",
   "files": {
-    "scripts/runtime/adapter.js": {
-      "source": "dist/src/adapter.js",
-      "sha256": "201e7925fef29dd3ccf56dc1e4135be4c4ba787b534644564c4805236093c9a8"
-    },
     "scripts/runtime/cli.js": {
       "source": "dist/src/cli.js",
       "sha256": "b21335c85c1fd1157f83d58cf7298ab5e5907be62ff4ca5278d8796c43a714ac"
@@ -13,10 +9,6 @@
     "scripts/runtime/errors.js": {
       "source": "dist/src/errors.js",
       "sha256": "0aaf35ade0e9703eb4c1f30ff7621ef2c550341d4992c8617d5997d3c1d09147"
-    },
-    "scripts/runtime/index.js": {
-      "source": "dist/src/index.js",
-      "sha256": "9491b27baee98353920a8dff78a0fac351713f93eae0b75558cc5a577c02250b"
     },
     "scripts/runtime/order.js": {
       "source": "dist/src/order.js",

@@ -12,7 +12,7 @@ Turn an incomplete proposal into shared design understanding without exhaustive 
 
 ### 1. Establish factual context
 
-Read the user's proposal and inspect available code, configuration, documentation, repository state, and local environment before forming questions. Resolve discoverable facts yourself. Do not ask the user for file contents, framework versions, existing conventions, or other facts available through the host's tools.
+Read the user's proposal first, then inspect only the code, configuration, and documentation needed to resolve facts that could change a material question. Prefer high-signal entry points and batch independent lookups when the host supports it. Stop exploring once the material decision boundaries are clear. Do not ask the user for file contents, framework versions, existing conventions, or other facts available through the host's tools.
 
 Separate:
 
@@ -43,7 +43,7 @@ Choose a depth and enforce its hard cap:
 
 Standard is the default. Use Essential for narrow or low-risk work. Use Deep only for high-risk, cross-system, security-sensitive, or hard-to-reverse designs. Do not add filler to reach a target.
 
-### 3. Generate and validate questionnaire JSON
+### 3. Generate questionnaire JSON
 
 Create a working-artifact directory in the user's project or host temp area, never inside the installed skill. Start from `assets/questionnaire.template.json` and conform to `references/questionnaire.schema.json`.
 
@@ -60,13 +60,7 @@ Order prerequisites before dependents. Prefer high-impact unresolved decisions. 
 
 Resolve `SKILL_DIR` as the absolute directory containing this `SKILL.md`; do not assume the current working directory or a particular installer location. Quote every path because installed paths may contain spaces.
 
-Validate before serving:
-
-```text
-node "<SKILL_DIR>/scripts/runtime/cli.js" validate "<questionnaire-path>"
-```
-
-Fix every reported issue. Do not weaken or bypass validation.
+Do not launch a separate validation process before serving. The `serve` command performs the same strict questionnaire validation before binding a port. If it reports validation issues, fix every issue and rerun it; do not weaken or bypass validation.
 
 ### 4. Run the bundled local questionnaire
 
