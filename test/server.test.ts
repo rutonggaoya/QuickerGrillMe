@@ -231,4 +231,74 @@ describe("local browser API", () => {
     });
     assert.equal(simpleContentType.status, 415);
   });
+
+  test("closes after the questionnaire page reports that it was closed", async () => {
+    const questionnaire = validateQuestionnaire(
+      JSON.parse(
+        await readSourceFile(resolve("examples", "questionnaire.json"), "utf8")
+      )
+    );
+    const temporaryDirectory = await mkdtemp(join(tmpdir(), "quickergrillme-"));
+    temporaryDirectories.push(temporaryDirectory);
+    let pageClosed = false;
+    const running = await startQuestionnaireServer({
+      questionnaire,
+      outputPath: join(temporaryDirectory, "answers.json"),
+      pageCloseGracePeriodMs: 0,
+      onPageClosed: () => {
+        pageClosed = true;
+      }
+    });
+    runningServers.push(running);
+    const transportQuestionnaire = await (
+      await fetch(`${running.url}/api/questionnaire`)
+    ).json();
+
+    const closeResponse = await fetch(`${running.url}/api/session/close`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-quickergrillme-token": transportQuestionnaire.submissionToken
+      },
+      body: "{}"
+    });
+
+    assert.equal(closeResponse.status, 202);
+    await running.closed;
+    assert.equal(pageClosed, true);
+  });
+
+  test("keeps serving when a refresh reconnects during the close grace period", async () => {
+    const questionnaire = validateQuestionnaire(
+      JSON.parse(
+        await readSourceFile(resolve("examples", "questionnaire.json"), "utf8")
+      )
+    );
+    const temporaryDirectory = await mkdtemp(join(tmpdir(), "quickergrillme-"));
+    temporaryDirectories.push(temporaryDirectory);
+    const running = await startQuestionnaireServer({
+      questionnaire,
+      outputPath: join(temporaryDirectory, "answers.json"),
+      pageCloseGracePeriodMs: 50,
+      exitOnSubmit: false
+    });
+    runningServers.push(running);
+    const transportQuestionnaire = await (
+      await fetch(`${running.url}/api/questionnaire`)
+    ).json();
+
+    const closeResponse = await fetch(`${running.url}/api/session/close`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-quickergrillme-token": transportQuestionnaire.submissionToken
+      },
+      body: "{}"
+    });
+    assert.equal(closeResponse.status, 202);
+    const refreshResponse = await fetch(`${running.url}/api/questionnaire`);
+    assert.equal(refreshResponse.status, 200);
+    await new Promise((resolveWait) => setTimeout(resolveWait, 75));
+    assert.equal((await fetch(running.url)).status, 200);
+  });
 });

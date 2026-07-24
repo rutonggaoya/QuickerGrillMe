@@ -14,6 +14,7 @@ import { orderQuestions } from "./order.js";
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const publicDirectory = resolve(moduleDirectory, "..", "..", "public");
 const maximumRequestBytes = 1_000_000;
+const defaultPageCloseGracePeriodMs = 1_000;
 function isDepthLevel(value) {
     return (typeof value === "string" &&
         DEPTH_LEVELS.some((depthLevel) => depthLevel === value));
@@ -100,6 +101,7 @@ function parsePreviewRequest(value) {
 }
 export function createQuestionnaireServer(options) {
     const requestToken = randomBytes(32).toString("hex");
+    let pageCloseTimer;
     let server;
     server = createServer((request, response) => {
         void handleRequest(request, response).catch((error) => {
@@ -115,6 +117,24 @@ export function createQuestionnaireServer(options) {
             sendJson(response, 500, { error: "server_error", message });
         });
     });
+    server.once("close", cancelPendingPageClose);
+    function cancelPendingPageClose() {
+        if (pageCloseTimer !== undefined) {
+            clearTimeout(pageCloseTimer);
+            pageCloseTimer = undefined;
+        }
+    }
+    function schedulePageClose() {
+        if (options.exitOnPageClose === false) {
+            return;
+        }
+        cancelPendingPageClose();
+        pageCloseTimer = setTimeout(() => {
+            pageCloseTimer = undefined;
+            options.onPageClosed?.();
+            server.close();
+        }, options.pageCloseGracePeriodMs ?? defaultPageCloseGracePeriodMs);
+    }
     async function handleRequest(request, response) {
         const address = server.address();
         if (address === null || typeof address === "string") {
@@ -152,6 +172,7 @@ export function createQuestionnaireServer(options) {
             return;
         }
         if (request.method === "GET" && requestUrl.pathname === "/api/questionnaire") {
+            cancelPendingPageClose();
             sendJson(response, 200, {
                 ...options.questionnaire,
                 questions: orderQuestions(options.questionnaire.questions),
@@ -168,6 +189,13 @@ export function createQuestionnaireServer(options) {
                 questionCount: selected.length,
                 pages: groupQuestionsIntoPages(selected)
             });
+            return;
+        }
+        if (request.method === "POST" && requestUrl.pathname === "/api/session/close") {
+            sendJson(response, 202, {
+                status: options.exitOnPageClose === false ? "active" : "closing"
+            });
+            schedulePageClose();
             return;
         }
         if (request.method === "POST" && requestUrl.pathname === "/api/submit") {
@@ -205,8 +233,12 @@ export async function startQuestionnaireServer(options) {
         await new Promise((resolveClosed) => server.close(() => resolveClosed()));
         throw new Error("Unable to determine local server address");
     }
+    const closed = new Promise((resolveClosed) => {
+        server.once("close", resolveClosed);
+    });
     return {
         url: `http://127.0.0.1:${address.port}`,
+        closed,
         close: () => new Promise((resolveClosed, rejectClosed) => {
             server.close((error) => {
                 if (error !== undefined) {

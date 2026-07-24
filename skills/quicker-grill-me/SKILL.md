@@ -76,9 +76,9 @@ Start the browser runtime in a terminal/background process that can remain alive
 node "<SKILL_DIR>/scripts/runtime/cli.js" serve "<questionnaire-path>" --output "<answers-path>" --round 1
 ```
 
-The runtime chooses a loopback port, opens the browser, persists the answer artifact atomically, and exits after successful submission. It uses only bundled JavaScript and browser assets; do not run `npm install`, `npm run build`, or code from the source tree.
+The runtime chooses a loopback port, opens the browser, persists the answer artifact atomically, and exits after successful submission. It also exits when the user closes the questionnaire page; a page refresh reconnects during a short grace period instead of cancelling the questionnaire. It uses only bundled JavaScript and browser assets; do not run `npm install`, `npm run build`, or code from the source tree.
 
-Tell the user briefly that the questionnaire opened and wait for submission. If automatic opening fails, provide the printed `http://127.0.0.1:<port>` URL. After the process exits, read and validate the resulting answers artifact against `references/answers.schema.json`. Reconcile the answers with the factual context; do not merely restate questionnaire labels.
+Tell the user briefly that the questionnaire opened and wait for submission. If automatic opening fails, provide the printed `http://127.0.0.1:<port>` URL. If the process reports that the questionnaire closed before submission, stop this skill immediately, tell the user the questionnaire was cancelled, and do not wait, reopen it, or look for an answer artifact. Otherwise, after the process exits, read and validate the resulting answers artifact against `references/answers.schema.json`. Reconcile the answers with the factual context; do not merely restate questionnaire labels.
 
 If a browser cannot be used, present the ordered questions in the host UI or chat. Preserve recommendations, depth caps, dependency/visibility rules, defer metadata, changed-answer review, and the answer contract. Ask primarily for changes from recommendations.
 

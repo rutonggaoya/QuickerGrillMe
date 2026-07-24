@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { spawn, spawnSync, type ChildProcessByStdio } from "node:child_process";
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import type { Readable } from "node:stream";
@@ -215,3 +215,66 @@ test("bundled skill runs without project dependencies from a path containing spa
     await rm(temporaryRoot, { recursive: true, force: true });
   }
 });
+
+test(
+  "bundled skill exits cleanly when the questionnaire page closes",
+  { timeout: 10_000 },
+  async () => {
+    const temporaryRoot = await mkdtemp(join(tmpdir(), "quicker grill me close "));
+    const outputPath = join(temporaryRoot, "answers.json");
+    const runtimePath = resolve(
+      "skills",
+      "quicker-grill-me",
+      "scripts",
+      "runtime",
+      "cli.js"
+    );
+    const questionnairePath = resolve(
+      "skills",
+      "quicker-grill-me",
+      "assets",
+      "questionnaire.example.json"
+    );
+    const child = spawn(
+      process.execPath,
+      [
+        runtimePath,
+        "serve",
+        questionnairePath,
+        "--output",
+        outputPath,
+        "--no-open"
+      ],
+      {
+        cwd: temporaryRoot,
+        stdio: ["ignore", "pipe", "pipe"]
+      }
+    );
+
+    try {
+      const exitPromise = once(child, "exit");
+      const url = await waitForUrl(child);
+      const transport = await (await fetch(`${url}/api/questionnaire`)).json();
+      const closeResponse = await fetch(`${url}/api/session/close`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-quickergrillme-token": transport.submissionToken
+        },
+        body: "{}"
+      });
+
+      assert.equal(closeResponse.status, 202);
+      const [exitCode, signal] = await exitPromise;
+      assert.equal(signal, null);
+      assert.equal(exitCode, 0);
+      await assert.rejects(access(outputPath));
+    } finally {
+      if (child.exitCode === null) {
+        child.kill("SIGTERM");
+        await once(child, "exit");
+      }
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  }
+);

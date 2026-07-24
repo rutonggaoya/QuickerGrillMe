@@ -349,6 +349,7 @@ function QuestionnaireApp(): React.JSX.Element {
   const [error, setError] = useState<string>();
   const answersRef = useRef<Answers>({});
   const previewRequestId = useRef(0);
+  const submittedRef = useRef(false);
 
   const refreshPreview = useCallback(
     async (
@@ -391,6 +392,28 @@ function QuestionnaireApp(): React.JSX.Element {
       }
     })();
   }, [refreshPreview]);
+
+  useEffect(() => {
+    if (questionnaire === undefined) {
+      return;
+    }
+    const notifyPageClosed = (event: PageTransitionEvent): void => {
+      if (event.persisted || submittedRef.current) {
+        return;
+      }
+      void fetch("/api/session/close", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-quickergrillme-token": questionnaire.submissionToken
+        },
+        body: "{}",
+        keepalive: true
+      });
+    };
+    window.addEventListener("pagehide", notifyPageClosed);
+    return () => window.removeEventListener("pagehide", notifyPageClosed);
+  }, [questionnaire]);
 
   const visibleIds = useMemo(
     () => new Set(pages.flatMap((page) => page.questions.map((question) => question.id))),
@@ -478,6 +501,7 @@ function QuestionnaireApp(): React.JSX.Element {
           })
         }
       );
+      submittedRef.current = true;
       setSuccess(result);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));

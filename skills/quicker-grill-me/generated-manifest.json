@@ -8,7 +8,7 @@
     },
     "scripts/runtime/cli.js": {
       "source": "dist/src/cli.js",
-      "sha256": "33798026a49daecde8f29607e62049f0aaec7859a07512713359a127a6446f68"
+      "sha256": "b21335c85c1fd1157f83d58cf7298ab5e5907be62ff4ca5278d8796c43a714ac"
     },
     "scripts/runtime/errors.js": {
       "source": "dist/src/errors.js",
@@ -40,7 +40,7 @@
     },
     "scripts/runtime/server.js": {
       "source": "dist/src/server.js",
-      "sha256": "ac9521ce62919835bd77d66f4363053ee07e196d715b704c2a011a320be2d29d"
+      "sha256": "f5cf653e768d91b66e04d479d6350c100b8ac1486651653344e83ca7bd89187e"
     },
     "scripts/runtime/types.js": {
       "source": "dist/src/types.js",
@@ -52,7 +52,7 @@
     },
     "public/app.js": {
       "source": "public/app.js",
-      "sha256": "70ee2714e3de3649c2be6f80a1c2a6a577cd470d16f21df035904b88ea686272"
+      "sha256": "c2cda26d358b976f2580211054245dc89d5eaf1243df6a245f2e77ec9d45225b"
     },
     "public/app.css": {
       "source": "public/app.css",

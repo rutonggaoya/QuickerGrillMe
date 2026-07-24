@@ -208,15 +208,22 @@ async function main(): Promise<void> {
     exitOnSubmit: argumentsParsed.exitOnSubmit,
     onSubmitted: (outputPath) => {
       process.stdout.write(`Submission complete. Answers saved to ${outputPath}\n`);
+    },
+    onPageClosed: () => {
+      process.stdout.write("Questionnaire closed before submission. No answers were saved.\n");
     }
   });
 
   process.stdout.write(`QuickerGrillMe is ready at ${running.url}\n`);
   process.stdout.write(`Answers will be saved to ${argumentsParsed.outputPath}\n`);
   if (argumentsParsed.exitOnSubmit) {
-    process.stdout.write("The server will stop after a successful submission.\n");
+    process.stdout.write(
+      "The server will stop after a successful submission or when the questionnaire is closed.\n"
+    );
   } else {
-    process.stdout.write("Press Ctrl+C to stop the server.\n");
+    process.stdout.write(
+      "The server will keep serving after submission and stop when the questionnaire is closed or Ctrl+C is pressed.\n"
+    );
   }
   if (argumentsParsed.openBrowser) {
     openBrowser(running.url);

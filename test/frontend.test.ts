@@ -18,4 +18,5 @@ test("prebuilt React questionnaire stays within its startup asset budget", async
     `gzipped app.js is ${gzipSync(javascript).byteLength} bytes`
   );
   assert.ok(css.byteLength <= 10_000, `app.css is ${css.byteLength} bytes`);
+  assert.match(javascript.toString("utf8"), /\/api\/session\/close/);
 });
