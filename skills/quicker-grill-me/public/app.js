@@ -8,7 +8,9 @@ const state = {
   pages: [],
   pageIndex: 0,
   reviewing: false,
-  submitting: false
+  submitting: false,
+  previewRequestId: 0,
+  pendingQuestionUpdates: new Map()
 };
 
 async function requestJson(url, options = {}) {
@@ -84,7 +86,15 @@ function answerValueMap() {
   );
 }
 
+function pageLayoutKey(pages) {
+  return pages
+    .map((page) => `${page.weight}:${page.questions.map((question) => question.id).join(",")}`)
+    .join("|");
+}
+
 async function refreshPreview() {
+  const requestId = ++state.previewRequestId;
+  const previousLayout = pageLayoutKey(state.pages);
   const preview = await requestJson("/api/preview", {
     method: "POST",
     body: JSON.stringify({
@@ -92,8 +102,15 @@ async function refreshPreview() {
       answers: answerValueMap()
     })
   });
+  if (requestId !== state.previewRequestId) {
+    return { applied: false, layoutChanged: false };
+  }
   state.pages = preview.pages;
   state.pageIndex = Math.min(state.pageIndex, Math.max(state.pages.length - 1, 0));
+  return {
+    applied: true,
+    layoutChanged: previousLayout !== pageLayoutKey(state.pages)
+  };
 }
 
 function element(tag, className, text) {
@@ -114,6 +131,58 @@ function optionLabel(question, value) {
     .join(", ");
 }
 
+function findQuestionCard(questionId) {
+  return [...document.querySelectorAll(".question-card")].find(
+    (card) => card.dataset.questionId === questionId
+  );
+}
+
+function syncRecommendationBadge(question) {
+  const card = findQuestionCard(question.id);
+  if (!card) {
+    return;
+  }
+  const meta = card.querySelector(".question-meta");
+  meta?.querySelector(".badge.recommended")?.remove();
+  if (state.answers[question.id].source === "recommended") {
+    meta?.append(element("span", "badge recommended", "Agent recommended"));
+  }
+}
+
+function replaceQuestionCard(question) {
+  findQuestionCard(question.id)?.replaceWith(renderQuestion(question));
+}
+
+async function refreshAfterAnswer(question, replaceCard = false) {
+  state.pendingQuestionUpdates.set(
+    question.id,
+    replaceCard || state.pendingQuestionUpdates.get(question.id) === true
+  );
+  const result = await refreshPreview();
+  if (!result.applied) {
+    return;
+  }
+  if (result.layoutChanged) {
+    state.pendingQuestionUpdates.clear();
+    render();
+  } else {
+    for (const [questionId, shouldReplace] of state.pendingQuestionUpdates) {
+      const pendingQuestion = state.questionnaire.questions.find(
+        (item) => item.id === questionId
+      );
+      if (!pendingQuestion) {
+        continue;
+      }
+      if (shouldReplace) {
+        replaceQuestionCard(pendingQuestion);
+      } else {
+        syncRecommendationBadge(pendingQuestion);
+      }
+    }
+    state.pendingQuestionUpdates.clear();
+  }
+}
+
 function setChoice(question, value) {
   state.answers[question.id] = {
     questionId: question.id,
@@ -122,7 +191,7 @@ function setChoice(question, value) {
     source: valuesEqual(value, recommendedValue(question)) ? "recommended" : "changed",
     confidence: question.confidence
   };
-  void refreshPreview().then(render).catch(renderError);
+  void refreshAfterAnswer(question).catch(renderError);
 }
 
 function setDeferred(question) {
@@ -136,11 +205,12 @@ function setDeferred(question) {
     temporaryDefault: defaultValue,
     validationTrigger: question.defer.validationTrigger
   };
-  void refreshPreview().then(render).catch(renderError);
+  void refreshAfterAnswer(question, true).catch(renderError);
 }
 
 function renderQuestion(question) {
   const card = element("section", "question-card");
+  card.dataset.questionId = question.id;
   const meta = element("div", "question-meta");
   meta.append(
     element("span", "badge", question.topic),
@@ -155,6 +225,7 @@ function renderQuestion(question) {
   const fieldset = document.createElement("fieldset");
   fieldset.append(element("legend", "", question.prompt));
   const current = state.answers[question.id];
+  const optionList = element("div", "option-list");
 
   for (const option of question.options) {
     const label = element("label", "option");
@@ -176,7 +247,7 @@ function renderQuestion(question) {
         setChoice(question, selected);
       } else {
         state.answers[question.id] = makeRecommendedAnswer(question);
-        void refreshPreview().then(render).catch(renderError);
+        void refreshAfterAnswer(question).catch(renderError);
       }
     });
     label.append(
@@ -188,11 +259,14 @@ function renderQuestion(question) {
       ),
       element("span", "option-description", option.description)
     );
-    fieldset.append(label);
+    optionList.append(label);
   }
+  fieldset.append(optionList);
 
   if (question.allowCustom) {
-    const customWrap = element("div", "custom-wrap");
+    const customWrap = element("details", "custom-wrap");
+    customWrap.open = current.source === "custom";
+    customWrap.append(element("summary", "", "Custom answer"));
     const customInput = document.createElement("input");
     customInput.type = "text";
     customInput.placeholder = "Custom answer";
@@ -217,16 +291,20 @@ function renderQuestion(question) {
           confidence: "low"
         };
       }
-      void refreshPreview().then(render).catch(renderError);
+      void refreshAfterAnswer(question, true).catch(renderError);
     });
     customWrap.append(customInput);
     fieldset.append(customWrap);
   }
 
-  const rationale = element(
-    "p",
-    "recommendation",
-    `Why this is recommended: ${question.recommendationRationale} Confidence: ${question.confidence}.`
+  const rationale = element("details", "recommendation");
+  rationale.append(
+    element("summary", "", "Why this is recommended"),
+    element(
+      "p",
+      "",
+      `${question.recommendationRationale} Confidence: ${question.confidence}.`
+    )
   );
   fieldset.append(rationale);
 
@@ -239,7 +317,7 @@ function renderQuestion(question) {
     resetButton.type = "button";
     resetButton.addEventListener("click", () => {
       state.answers[question.id] = makeRecommendedAnswer(question);
-      void refreshPreview().then(render).catch(renderError);
+      void refreshAfterAnswer(question, true).catch(renderError);
     });
     actions.append(deferButton, resetButton);
     fieldset.append(actions);
@@ -260,6 +338,7 @@ function renderQuestion(question) {
 
 function renderHeader() {
   const header = document.createElement("header");
+  header.className = "app-header";
   header.append(
     element("p", "eyebrow", "Decision-focused design review"),
     element("h1", "", state.questionnaire.metadata.title),
@@ -286,7 +365,14 @@ function renderHeader() {
     state.level = select.value;
     state.pageIndex = 0;
     state.reviewing = false;
-    void refreshPreview().then(render).catch(renderError);
+    select.disabled = true;
+    void refreshPreview()
+      .then((result) => {
+        if (result.applied) {
+          render();
+        }
+      })
+      .catch(renderError);
   });
   control.append(label, select);
 
@@ -437,9 +523,11 @@ function renderPage() {
     element("p", "", `Page complexity ${page?.weight ?? 0}`)
   );
   section.append(heading);
+  const questionList = element("div", "question-list");
   for (const question of page?.questions ?? []) {
-    section.append(renderQuestion(question));
+    questionList.append(renderQuestion(question));
   }
+  section.append(questionList);
 
   const navigation = element("div", "navigation");
   const previous = element("button", "secondary", "Previous");
@@ -448,7 +536,7 @@ function renderPage() {
   previous.addEventListener("click", () => {
     state.pageIndex -= 1;
     render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo(0, 0);
   });
   const finalPage =
     state.pages.length === 0 || state.pageIndex === state.pages.length - 1;
@@ -461,7 +549,7 @@ function renderPage() {
       state.pageIndex += 1;
     }
     render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo(0, 0);
   });
   navigation.append(previous, next);
   section.append(navigation);

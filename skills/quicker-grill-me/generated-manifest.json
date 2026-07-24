@@ -8,7 +8,7 @@
     },
     "scripts/runtime/cli.js": {
       "source": "dist/src/cli.js",
-      "sha256": "daa884b5d0b5a730153bcd1b471a019f48781985634701753e5a2c84b8469896"
+      "sha256": "33798026a49daecde8f29607e62049f0aaec7859a07512713359a127a6446f68"
     },
     "scripts/runtime/errors.js": {
       "source": "dist/src/errors.js",
@@ -16,7 +16,7 @@
     },
     "scripts/runtime/index.js": {
       "source": "dist/src/index.js",
-      "sha256": "0729f8c11976e936175b199067939e298c9a8fde78972ef668d0fbc614acf5f8"
+      "sha256": "9491b27baee98353920a8dff78a0fac351713f93eae0b75558cc5a577c02250b"
     },
     "scripts/runtime/order.js": {
       "source": "dist/src/order.js",
@@ -29,6 +29,10 @@
     "scripts/runtime/persistence.js": {
       "source": "dist/src/persistence.js",
       "sha256": "5167882f43a83b339b16b5fb800b96db21794e6e8e51b81e1e5867c82652d06a"
+    },
+    "scripts/runtime/review.js": {
+      "source": "dist/src/review.js",
+      "sha256": "ecbbd38ef2fd2a5afbfac179f1773e69a50186da3a2197477bdd957d67398ef2"
     },
     "scripts/runtime/select.js": {
       "source": "dist/src/select.js",
@@ -48,7 +52,7 @@
     },
     "public/app.js": {
       "source": "public/app.js",
-      "sha256": "8f67bf970b59ab73b651dd0e3eb5ee8c9df52ba6373def44b0a0350a859f29b6"
+      "sha256": "978d574714eebccb08cb8c8a652efa1444ff7898b269cea09c31260868285401"
     },
     "public/index.html": {
       "source": "public/index.html",
@@ -56,7 +60,7 @@
     },
     "public/styles.css": {
       "source": "public/styles.css",
-      "sha256": "75c10baf0819628202a5a748ef8c32ffec346c8d0b34dbd6182f8d7e5b8b9330"
+      "sha256": "c38d9a00fa574f0fd71005e15ffd0a4294910e398df1ea79e044daf2ec69574d"
     },
     "references/questionnaire.schema.json": {
       "source": "schema/questionnaire.schema.json",

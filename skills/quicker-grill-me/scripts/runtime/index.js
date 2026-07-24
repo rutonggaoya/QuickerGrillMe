@@ -4,6 +4,7 @@ export * from "./errors.js";
 export * from "./order.js";
 export * from "./paginate.js";
 export * from "./persistence.js";
+export * from "./review.js";
 export * from "./select.js";
 export * from "./server.js";
 export * from "./types.js";

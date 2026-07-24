@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { spawn, spawnSync, type ChildProcessByStdio } from "node:child_process";
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import type { Readable } from "node:stream";
@@ -177,6 +177,36 @@ test("bundled skill runs without project dependencies from a path containing spa
     const persisted = JSON.parse(await readFile(outputPath, "utf8"));
     assert.equal(persisted.round, 2);
     assert.equal(persisted.questionnaireId, transport.metadata.id);
+
+    const designPath = join(temporaryRoot, "final design.md");
+    const reviewPath = join(temporaryRoot, "design review.html");
+    await writeFile(
+      designPath,
+      "# Final design\n\n## Goal\n\nProvide a durable, reviewable design artifact.\n",
+      "utf8"
+    );
+    const review = spawnSync(
+      process.execPath,
+      [
+        runtimePath,
+        "render-review",
+        questionnairePath,
+        outputPath,
+        designPath,
+        "--output",
+        reviewPath
+      ],
+      {
+        cwd: temporaryRoot,
+        encoding: "utf8"
+      }
+    );
+    assert.equal(review.status, 0, review.stderr);
+    assert.match(review.stdout, /Design review saved to/);
+    const reviewHtml = await readFile(reviewPath, "utf8");
+    assert.match(reviewHtml, /<h1>Final design<\/h1>/);
+    assert.match(reviewHtml, /Questionnaire decision record/);
+    assert.doesNotMatch(reviewHtml, /<script>/);
   } finally {
     if (child !== undefined && child.exitCode === null) {
       child.kill("SIGTERM");

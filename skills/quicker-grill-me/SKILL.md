@@ -114,4 +114,12 @@ Produce one coherent design containing:
 
 Call out unresolved risk plainly. Keep the design proportionate to the proposal; this workflow is not a new framework, approval system, or hosted service.
 
-End by asking the user to confirm that the design captures the shared understanding. Do not implement until that confirmation is received.
+Persist that complete design as `final-design.md` in the working-artifact directory; do not leave the only copy in chat. Then generate a self-contained, read-only review page containing both the final design and the complete questionnaire decision record:
+
+```text
+node "<SKILL_DIR>/scripts/runtime/cli.js" render-review "<questionnaire-path>" "<answers-path>" "<final-design.md-path>" --output "<design-review.html-path>"
+```
+
+The HTML makes no external requests and is ready to upload to a static host. It does not implement authentication. Because the intended access is organization members or invited reviewers, publish it only through a host that enforces those permissions. If no approved host or publisher integration is available, provide both artifact paths and do not upload them to a public service.
+
+End by giving the user the persisted Markdown and review-page paths, then ask them to confirm that the design captures the shared understanding. Do not implement until that confirmation is received.

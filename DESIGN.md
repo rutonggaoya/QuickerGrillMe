@@ -36,7 +36,8 @@ stateDiagram-v2
     RoundTwoAssessment --> FinalDesign: no trigger
     RoundTwo --> AnswersPersisted: maximum 3-5 follow-ups
     AnswersPersisted --> FinalDesign: round 2 complete
-    FinalDesign --> [*]
+    FinalDesign --> ReviewArtifacts
+    ReviewArtifacts --> [*]
 ```
 
 1. The Agent reads the proposal and emits `questionnaire.json`.
@@ -46,9 +47,10 @@ stateDiagram-v2
 5. The review step shows only answers that differ from recommendations, including custom and deferred answers.
 6. Submission writes `answers.json`.
 7. The Agent assesses the explicit round-two triggers. If needed, it emits one final questionnaire containing no more than 3–5 questions.
-8. The Agent produces the final output contract.
+8. The Agent produces and persists the final output contract as Markdown.
+9. The bundled renderer combines the design, questionnaire, and answers into a self-contained review page.
 
-The browser adapter implements steps 2–6. Generation, round-two reasoning, and final prose remain Agent responsibilities. The installable skill tells a compatible Agent how to coordinate the complete workflow and invokes the bundled adapter.
+The browser adapter implements steps 2–6. Generation, round-two reasoning, and final prose remain Agent responsibilities. The dependency-free review renderer persists the final shareable artifact without taking responsibility for hosting or access control. The installable skill tells a compatible Agent how to coordinate the complete workflow and invokes both bundled adapters.
 
 ## Installable Agent Skill
 
@@ -152,6 +154,8 @@ After reading `answers.json`, the Agent produces a complete design document with
 
 The final document must reconcile answers rather than copy questionnaire text. If round two is required, final generation waits until it is complete.
 
+The Agent must write the complete document to `final-design.md`, then invoke `render-review` to produce `design-review.html`. The HTML includes the reconciled design and complete visible questionnaire decision record. It is self-contained, read-only, and suitable for any static host. Hosting remains an explicit boundary: organization-only or invited-reviewer access must be enforced by the selected publishing platform, not implied by the file.
+
 ## Contracts
 
 The normative language-neutral contracts are:
@@ -196,6 +200,8 @@ The browser adapter uses a short-lived loopback HTTP server and vanilla HTML/CSS
 - Render questionnaire text through DOM text nodes, not injected markup.
 - Limit request body size.
 - Write answers atomically to the caller-selected path.
+- Escape design and questionnaire content in generated review HTML, apply a restrictive content security policy, and write the page atomically.
+- Never upload a review artifact unless the user has selected an approved host with appropriate access controls.
 - Do not place secrets or customer content in questionnaires unless the adopting environment provides an appropriate local storage policy.
 
 ## V1.1 scope
@@ -206,6 +212,7 @@ V1.1 includes:
 - dependency ordering, depth filtering/caps, conditional visibility, and page grouping;
 - local browser adapter with recommendation, custom, defer, level switch, review, and submission;
 - local answer persistence and clear lifecycle output;
+- persisted final-design Markdown and self-contained review-page generation;
 - a validation CLI and example questionnaire;
 - documented non-browser fallback;
 - open Agent Skills packaging with one-command installation;
@@ -214,13 +221,14 @@ V1.1 includes:
 
 ## Non-goals
 
-- hosted questionnaire service, accounts, or remote telemetry;
+- hosted questionnaire or review service, accounts, or remote telemetry;
 - multi-user editing and conflict resolution;
 - automatic question generation inside the Node core;
 - automatic final-design prose generation;
 - arbitrary questionnaire HTML or plugin scripts;
 - unbounded iterative questioning;
 - formal workflow approval, ticketing, or project-management features.
+- comments, approvals, or collaborative editing inside the generated review page.
 
 ## Non-browser fallback
 

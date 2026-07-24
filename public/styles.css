@@ -10,7 +10,7 @@
   --accent-soft: #fff0e6;
   --recommended: #176c50;
   --recommended-soft: #e9f7f0;
-  --shadow: 0 18px 50px rgb(63 42 25 / 10%);
+  --shadow: 0 3px 12px rgb(63 42 25 / 7%);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -24,13 +24,12 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 10% 0%, #f8d9c3 0, transparent 28rem),
-    linear-gradient(180deg, #fbf7ef, var(--paper));
+  background: var(--paper);
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -39,9 +38,9 @@ button {
 }
 
 #app {
-  width: min(920px, calc(100% - 32px));
+  width: min(1040px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 48px 0 64px;
+  padding: 24px 0 40px;
 }
 
 .loading,
@@ -80,41 +79,62 @@ p {
 }
 
 h1 {
-  max-width: 720px;
-  margin-bottom: 12px;
+  max-width: 840px;
+  margin-bottom: 8px;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.25rem, 6vw, 4.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title title"
+    "lede toolbar";
+  column-gap: 20px;
+  align-items: end;
+}
+
+.app-header .eyebrow {
+  display: none;
+}
+
+.app-header h1 {
+  grid-area: title;
+}
+
+.app-header .lede {
+  grid-area: lede;
 }
 
 .lede {
-  max-width: 720px;
+  max-width: 840px;
+  margin-bottom: 12px;
   color: var(--muted);
-  font-size: 1.08rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 .toolbar {
-  position: sticky;
-  z-index: 5;
-  top: 12px;
+  grid-area: toolbar;
   display: flex;
-  gap: 20px;
-  align-items: end;
+  gap: 16px;
+  align-items: center;
   justify-content: space-between;
-  margin: 32px 0 24px;
-  padding: 14px 16px;
-  border: 1px solid rgb(220 214 202 / 85%);
-  border-radius: 16px;
-  background: rgb(255 253 248 / 90%);
-  box-shadow: 0 8px 28px rgb(75 51 30 / 8%);
-  backdrop-filter: blur(12px);
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgb(75 51 30 / 6%);
 }
 
 .level-control {
-  display: grid;
-  gap: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .level-control label {
@@ -124,13 +144,12 @@ h1 {
 }
 
 select {
-  min-width: 170px;
-  padding: 9px 36px 9px 10px;
+  min-width: 160px;
+  padding: 6px 32px 6px 9px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: #fff;
   color: var(--ink);
-  font: inherit;
   font-weight: 700;
 }
 
@@ -151,31 +170,46 @@ select {
   gap: 16px;
   align-items: baseline;
   justify-content: space-between;
-  margin: 28px 0 14px;
+  margin: 14px 0 8px;
+}
+
+.page-heading h2 {
+  margin-bottom: 0;
+  font-size: 1.2rem;
 }
 
 .page-heading p {
+  margin-bottom: 0;
   color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .question-card {
-  margin-bottom: 18px;
-  padding: clamp(20px, 4vw, 30px);
+  contain: layout paint;
+  margin: 0;
+  padding: clamp(14px, 2.5vw, 20px);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--panel);
   box-shadow: var(--shadow);
+}
+
+.question-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
 .question-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-bottom: 14px;
+  gap: 5px;
+  margin-bottom: 9px;
 }
 
 .badge {
-  padding: 4px 8px;
+  padding: 3px 7px;
   border-radius: 999px;
   background: #f3f0ea;
   color: var(--muted);
@@ -204,9 +238,9 @@ fieldset {
 
 legend {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.25rem, 3vw, 1.55rem);
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
   font-weight: 700;
   line-height: 1.25;
 }
@@ -215,15 +249,23 @@ legend {
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 12px;
-  margin: 9px 0;
-  padding: 14px 16px;
+  gap: 1px 10px;
+  margin: 6px 0;
+  padding: 9px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #fff;
-  transition:
-    border-color 120ms ease,
-    background 120ms ease;
+}
+
+.option-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px;
+}
+
+.option-list .option {
+  height: 100%;
+  margin: 0;
 }
 
 .option:has(input:checked) {
@@ -243,25 +285,34 @@ legend {
 
 .option-description {
   color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.4;
+  font-size: 0.82rem;
+  line-height: 1.3;
 }
 
 .recommendation {
-  margin: 16px 0 0;
-  padding: 12px 14px;
+  margin: 10px 0 0;
+  padding: 8px 11px;
   border-left: 3px solid var(--recommended);
   background: var(--recommended-soft);
   color: #245747;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.recommendation summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.recommendation p {
+  margin: 7px 0 0;
 }
 
 .answer-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .secondary,
@@ -284,11 +335,19 @@ legend {
 }
 
 .custom-wrap {
-  margin-top: 10px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.custom-wrap summary {
+  cursor: pointer;
 }
 
 .custom-wrap input {
   width: 100%;
+  margin-top: 7px;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -298,7 +357,7 @@ legend {
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .primary {
@@ -354,17 +413,44 @@ legend {
   text-align: center;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 900px) {
   #app {
-    width: min(100% - 20px, 920px);
-    padding-top: 28px;
+    width: min(100% - 16px, 1040px);
+    padding-top: 16px;
+  }
+
+  .app-header {
+    display: block;
+  }
+
+  .app-header .lede {
+    margin-bottom: 10px;
   }
 
   .toolbar {
-    align-items: stretch;
+    align-items: center;
+    margin: 10px 0;
+  }
+
+  .level-control label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .review-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .option-list {
+    grid-template-columns: 1fr;
+  }
+
+  .question-list {
     grid-template-columns: 1fr;
   }
 }
