@@ -52,11 +52,11 @@
     },
     "public/app.js": {
       "source": "public/app.js",
-      "sha256": "95d441f5b6b136da2607f319fc8ff51895489c2a342e36fbcd9a99477ef5101f"
+      "sha256": "70ee2714e3de3649c2be6f80a1c2a6a577cd470d16f21df035904b88ea686272"
     },
     "public/app.css": {
       "source": "public/app.css",
-      "sha256": "c71766ac42f51003fe3d693dc75b1c252246d8c7c79d1440f0b6447738a836bc"
+      "sha256": "2b5f3eac02983fd058c152db720a3630455d219c896b6a2df6ee1082e263fe53"
     },
     "public/index.html": {
       "source": "public/index.html",

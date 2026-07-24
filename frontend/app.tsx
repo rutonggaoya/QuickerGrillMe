@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   Card,
   Checkbox,
@@ -9,7 +8,6 @@ import {
   MessageBar,
   MessageBarBody,
   Option,
-  ProgressBar,
   Radio,
   RadioGroup,
   Spinner,
@@ -127,6 +125,14 @@ function optionLabel(question: Question, value: AnswerValue): string {
     .join(", ");
 }
 
+function topicAnchor(topic: string, index: number): string {
+  const slug = topic
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `topic-${slug || "section"}-${index + 1}`;
+}
+
 function CustomAnswer({
   question,
   current,
@@ -216,21 +222,6 @@ function QuestionCard({
 
   return (
     <Card className="question-card" appearance="outline">
-      <div className="question-meta">
-        <Badge appearance="tint">{question.topic}</Badge>
-        <Badge
-          appearance="tint"
-          color={question.impact === "high" ? "severe" : "informative"}
-        >
-          {question.impact} impact
-        </Badge>
-        {current.source === "recommended" && (
-          <Badge appearance="tint" color="success">
-            Agent recommended
-          </Badge>
-        )}
-      </div>
-
       <fieldset>
         <legend>{question.prompt}</legend>
         {question.questionType === "single-choice" ? (
@@ -352,7 +343,6 @@ function QuestionnaireApp(): React.JSX.Element {
   const [level, setLevel] = useState<DepthLevel>("standard");
   const [answers, setAnswers] = useState<Answers>({});
   const [pages, setPages] = useState<Page[]>([]);
-  const [pageIndex, setPageIndex] = useState(0);
   const [reviewing, setReviewing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<SubmitResponse>();
@@ -382,9 +372,6 @@ function QuestionnaireApp(): React.JSX.Element {
         return;
       }
       setPages(preview.pages);
-      setPageIndex((current) =>
-        Math.min(current, Math.max(preview.pages.length - 1, 0))
-      );
     },
     []
   );
@@ -409,6 +396,22 @@ function QuestionnaireApp(): React.JSX.Element {
     () => new Set(pages.flatMap((page) => page.questions.map((question) => question.id))),
     [pages]
   );
+  const topicGroups = useMemo(() => {
+    const groups = new Map<string, Question[]>();
+    for (const question of pages.flatMap((page) => page.questions)) {
+      const questions = groups.get(question.topic);
+      if (questions === undefined) {
+        groups.set(question.topic, [question]);
+      } else if (!questions.some((item) => item.id === question.id)) {
+        questions.push(question);
+      }
+    }
+    return [...groups.entries()].map(([topic, questions], index) => ({
+      topic,
+      questions,
+      anchor: topicAnchor(topic, index)
+    }));
+  }, [pages]);
   const changedQuestions = useMemo(
     () =>
       questionnaire?.questions.filter(
@@ -441,7 +444,6 @@ function QuestionnaireApp(): React.JSX.Element {
       return;
     }
     setLevel(nextLevel);
-    setPageIndex(0);
     setReviewing(false);
     void refreshPreview(questionnaire, nextLevel, answersRef.current).catch((caught) =>
       setError(caught instanceof Error ? caught.message : String(caught))
@@ -516,10 +518,6 @@ function QuestionnaireApp(): React.JSX.Element {
     );
   }
 
-  const page = pages[pageIndex];
-  const progressValue = reviewing
-    ? 1
-    : Math.min((pageIndex + 1) / Math.max(pages.length, 1), 1);
   const levelLabel = (value: DepthLevel): string =>
     `${value.charAt(0).toUpperCase()}${value.slice(1)}${
       value === questionnaire.metadata.recommendedLevel ? " — recommended" : ""
@@ -551,15 +549,12 @@ function QuestionnaireApp(): React.JSX.Element {
           </label>
           <div className="progress-copy">
             <strong>
-              {reviewing
-                ? "Review"
-                : `Page ${pageIndex + 1} of ${Math.max(pages.length, 1)}`}
+              {reviewing ? "Review" : `${topicGroups.length} topics`}
             </strong>
             <span>{visibleQuestionCount} key decisions</span>
           </div>
         </div>
       </header>
-      <ProgressBar value={progressValue} thickness="large" />
 
       {reviewing ? (
         <section className="review">
@@ -610,52 +605,63 @@ function QuestionnaireApp(): React.JSX.Element {
           </div>
         </section>
       ) : (
-        <section>
-          <div className="page-heading">
-            <h2>{page?.questions[0]?.topic ?? "Key decisions"}</h2>
-            <span>Page complexity {page?.weight ?? 0}</span>
-          </div>
-          <div className="question-list">
-            {page?.questions.map((question) => {
-              const current = answers[question.id];
-              return current === undefined ? null : (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  current={current}
-                  onAnswer={(answer) => commitAnswer(question, answer)}
-                />
-              );
-            })}
-          </div>
-          <div className="navigation">
-            <Button
-              appearance="secondary"
-              disabled={pageIndex === 0}
-              onClick={() => {
-                setPageIndex((current) => current - 1);
-                window.scrollTo(0, 0);
-              }}
-            >
-              Previous
-            </Button>
-            <Button
-              appearance="primary"
-              onClick={() => {
-                if (pages.length === 0 || pageIndex === pages.length - 1) {
+        <div className="questionnaire-layout">
+          <aside className="topic-sidebar" aria-label="Question topics">
+            <nav>
+              <p className="topic-sidebar-title">Topics</p>
+              <ol>
+                {topicGroups.map(({ topic, questions, anchor }) => (
+                  <li key={anchor}>
+                    <a href={`#${anchor}`}>
+                      <span>{topic}</span>
+                      <span aria-label={`${questions.length} questions`}>
+                        {questions.length}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          </aside>
+
+          <section className="all-questions">
+            {topicGroups.map(({ topic, questions, anchor }) => (
+              <section className="topic-section" id={anchor} key={anchor}>
+                <div className="topic-heading">
+                  <h2>{topic}</h2>
+                  <span>
+                    {questions.length} {questions.length === 1 ? "question" : "questions"}
+                  </span>
+                </div>
+                <div className="question-list">
+                  {questions.map((question) => {
+                    const current = answers[question.id];
+                    return current === undefined ? null : (
+                      <QuestionCard
+                        key={question.id}
+                        question={question}
+                        current={current}
+                        onAnswer={(answer) => commitAnswer(question, answer)}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+            <div className="navigation question-actions">
+              <span>Review your changes before submitting.</span>
+              <Button
+                appearance="primary"
+                onClick={() => {
                   setReviewing(true);
-                } else {
-                  setPageIndex((current) => current + 1);
-                }
-                window.scrollTo(0, 0);
-              }}
-            >
-              {pages.length === 0 || pageIndex === pages.length - 1
-                ? "Review answers"
-                : "Next"}
-            </Button>
-          </div>
-        </section>
+                  window.scrollTo(0, 0);
+                }}
+              >
+                Review answers
+              </Button>
+            </div>
+          </section>
+        </div>
       )}
     </main>
   );
