@@ -147,7 +147,7 @@ export function createQuestionnaireServer(options) {
             return;
         }
         if (request.method === "GET" &&
-            (requestUrl.pathname === "/app.js" || requestUrl.pathname === "/styles.css")) {
+            (requestUrl.pathname === "/app.js" || requestUrl.pathname === "/app.css")) {
             await sendStatic(response, requestUrl.pathname.slice(1));
             return;
         }

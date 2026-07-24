@@ -20,6 +20,7 @@ The project is independently designed. It takes brief inspiration from the idea 
 6. **Core, adapter, and distribution are separate.** Language-neutral JSON artifacts carry questions and answers. User interfaces are adapters. The installable Agent Skill packages the operating instructions and a generated adapter runtime without changing either boundary.
 7. **Ordering is semantic.** Questions form a decision dependency DAG, not a flat checklist.
 8. **Local-first and inspectable.** The v1 adapter binds to loopback, loads no external services, and writes a readable local artifact.
+9. **Fast to the first decision.** The browser UI is compiled and minified before distribution. Skill execution never installs packages or builds frontend code, and the shipped assets have an enforced size budget.
 
 ## Workflow and state machine
 
@@ -189,7 +190,7 @@ An adapter:
 
 Adapters may choose different page budgets and interaction surfaces. They must not raise depth caps, omit explicit defer metadata, reorder dependents before prerequisites, or silently repair invalid input.
 
-The browser adapter uses a short-lived loopback HTTP server and vanilla HTML/CSS/JavaScript. The installable skill ships its compiled dependency-free form. A terminal or chat adapter can implement the same contract later.
+The browser adapter uses a short-lived loopback HTTP server with a React and Fluent UI frontend. esbuild compiles the frontend into fixed minified assets during development and release; the installable skill ships only that dependency-free output and does not run a package manager or frontend build. A terminal or chat adapter can implement the same contract later.
 
 ## Security and privacy
 
@@ -197,7 +198,7 @@ The browser adapter uses a short-lived loopback HTTP server and vanilla HTML/CSS
 - Reject unexpected Host/Origin headers and require a per-process token plus JSON content type for mutations.
 - Make no external network requests.
 - Serve only fixed bundled assets.
-- Render questionnaire text through DOM text nodes, not injected markup.
+- Render questionnaire text through React text interpolation, not injected markup.
 - Limit request body size.
 - Write answers atomically to the caller-selected path.
 - Escape design and questionnaire content in generated review HTML, apply a restrictive content security policy, and write the page atomically.

@@ -53,6 +53,14 @@ describe("local browser API", () => {
     const pageResponse = await fetch(running.url);
     assert.equal(pageResponse.status, 200);
     assert.match(await pageResponse.text(), /QuickerGrillMe/);
+    const [scriptResponse, styleResponse] = await Promise.all([
+      fetch(`${running.url}/app.js`),
+      fetch(`${running.url}/app.css`)
+    ]);
+    assert.equal(scriptResponse.status, 200);
+    assert.match(scriptResponse.headers.get("content-type") ?? "", /text\/javascript/);
+    assert.equal(styleResponse.status, 200);
+    assert.match(styleResponse.headers.get("content-type") ?? "", /text\/css/);
     const transportQuestionnaire = await (
       await fetch(`${running.url}/api/questionnaire`)
     ).json();

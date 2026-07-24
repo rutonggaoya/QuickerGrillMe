@@ -23,7 +23,10 @@
     "DESIGN.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "npm run build:core && npm run check:web && npm run build:web",
+    "build:core": "tsc -p tsconfig.json",
+    "build:web": "esbuild frontend/app.tsx --bundle --minify --format=esm --target=es2022 --jsx=automatic --outfile=public/app.js",
+    "check:web": "tsc -p tsconfig.web.json",
     "build:skill": "npm run build && node tools/sync-skill.mjs --write",
     "check:skill": "npm run build && node tools/sync-skill.mjs --check",
     "prepack": "npm run build:skill",
@@ -35,7 +38,13 @@
     "node": ">=20"
   },
   "devDependencies": {
+    "@fluentui/react-components": "^9.74.4",
     "@types/node": "^24.0.15",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.25.12",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "typescript": "^5.8.3"
   }
 }

@@ -51,8 +51,8 @@ const compiledFiles = (await readdir(resolve(repositoryRoot, "dist", "src")))
 const mappings = [
   ...compiledFiles,
   { source: "public/app.js", target: "public/app.js" },
+  { source: "public/app.css", target: "public/app.css" },
   { source: "public/index.html", target: "public/index.html" },
-  { source: "public/styles.css", target: "public/styles.css" },
   {
     source: "schema/questionnaire.schema.json",
     target: "references/questionnaire.schema.json"

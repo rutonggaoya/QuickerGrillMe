@@ -40,7 +40,7 @@
     },
     "scripts/runtime/server.js": {
       "source": "dist/src/server.js",
-      "sha256": "ae1951c47359286cf5148df3a8296541a94195fa986cda2b547669ef24db731c"
+      "sha256": "ac9521ce62919835bd77d66f4363053ee07e196d715b704c2a011a320be2d29d"
     },
     "scripts/runtime/types.js": {
       "source": "dist/src/types.js",
@@ -52,15 +52,15 @@
     },
     "public/app.js": {
       "source": "public/app.js",
-      "sha256": "978d574714eebccb08cb8c8a652efa1444ff7898b269cea09c31260868285401"
+      "sha256": "95d441f5b6b136da2607f319fc8ff51895489c2a342e36fbcd9a99477ef5101f"
+    },
+    "public/app.css": {
+      "source": "public/app.css",
+      "sha256": "c71766ac42f51003fe3d693dc75b1c252246d8c7c79d1440f0b6447738a836bc"
     },
     "public/index.html": {
       "source": "public/index.html",
-      "sha256": "25d81da8862979ce034d80560b4eb9105b415caa8e6d3f8a524f09c52fde67ce"
-    },
-    "public/styles.css": {
-      "source": "public/styles.css",
-      "sha256": "c38d9a00fa574f0fd71005e15ffd0a4294910e398df1ea79e044daf2ec69574d"
+      "sha256": "5bdb66d9bbf84d4d92a50c2e2f1907fe528ffb2cb54fc87959c553021c1e543d"
     },
     "references/questionnaire.schema.json": {
       "source": "schema/questionnaire.schema.json",
