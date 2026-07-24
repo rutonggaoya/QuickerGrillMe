@@ -37,7 +37,18 @@ test("renders and persists a self-contained review with the full decision record
   const html = renderDesignReview(
     questionnaire,
     submission,
-    "# Final design\n\nUse **controlled rollout**.\n\n<script>alert('no')</script>",
+    [
+      "# Final design",
+      "",
+      "Use **controlled rollout**.",
+      "",
+      "| Scenario | Behavior |",
+      "| --- | --- |",
+      "| Name conflict | Never overwrite |",
+      "| Parser failure | Use `metadata \\| fallback` |",
+      "",
+      "<script>alert('no')</script>"
+    ].join("\n"),
     { generatedAt: "2026-07-24T01:00:00Z" }
   );
 
@@ -47,6 +58,13 @@ test("renders and persists a self-contained review with the full decision record
   assert.match(html, /How should &lt;delivery&gt; work\?/);
   assert.match(html, /Validate when:<\/strong> Before launch/);
   assert.match(html, /organization or invited reviewers only/);
+  assert.match(
+    html,
+    /<table><thead><tr><th>Scenario<\/th><th>Behavior<\/th><\/tr><\/thead>/
+  );
+  assert.match(html, /<td>Name conflict<\/td><td>Never overwrite<\/td>/);
+  assert.match(html, /<code>metadata \| fallback<\/code>/);
+  assert.doesNotMatch(html, /<p>\| Scenario/);
   assert.doesNotMatch(html, /<script>/);
   assert.match(html, /&lt;script&gt;alert\(&#39;no&#39;\)&lt;\/script&gt;/);
   assert.doesNotMatch(html, /src=|href=/);

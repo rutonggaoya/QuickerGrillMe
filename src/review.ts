@@ -23,6 +23,56 @@ function renderInline(value: string): string {
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 }
 
+function parseTableRow(line: string): string[] | undefined {
+  const trimmed = line.trim();
+  if (!trimmed.includes("|")) {
+    return undefined;
+  }
+
+  const content = trimmed.replace(/^\|/, "").replace(/\|$/, "");
+  const cells: string[] = [];
+  let cell = "";
+  let inCode = false;
+  for (let index = 0; index < content.length; index += 1) {
+    const character = content[index];
+    const nextCharacter = content[index + 1];
+    if (character === "\\" && nextCharacter === "|") {
+      cell += "|";
+      index += 1;
+      continue;
+    }
+    if (character === "`") {
+      inCode = !inCode;
+    }
+    if (character === "|" && !inCode) {
+      cells.push(cell.trim());
+      cell = "";
+      continue;
+    }
+    cell += character;
+  }
+  cells.push(cell.trim());
+  return cells.length >= 2 ? cells : undefined;
+}
+
+function isTableSeparator(cells: string[]): boolean {
+  return cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+}
+
+function renderTable(header: string[], rows: string[][]): string {
+  const width = header.length;
+  const renderRow = (row: string[], element: "td" | "th"): string => {
+    const normalized = Array.from({ length: width }, (_, index) => row[index] ?? "");
+    return `<tr>${normalized
+      .map((cell) => `<${element}>${renderInline(cell)}</${element}>`)
+      .join("")}</tr>`;
+  };
+  return `<div class="table-wrap"><table><thead>${renderRow(
+    header,
+    "th"
+  )}</thead><tbody>${rows.map((row) => renderRow(row, "td")).join("")}</tbody></table></div>`;
+}
+
 function renderMarkdown(markdown: string): string {
   const output: string[] = [];
   let paragraph: string[] = [];
@@ -52,7 +102,9 @@ function renderMarkdown(markdown: string): string {
     flushList();
   };
 
-  for (const rawLine of markdown.replaceAll("\r\n", "\n").split("\n")) {
+  const lines = markdown.replaceAll("\r\n", "\n").split("\n");
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const rawLine = lines[lineIndex] ?? "";
     if (codeLines !== undefined) {
       if (rawLine.startsWith("```")) {
         output.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
@@ -69,6 +121,30 @@ function renderMarkdown(markdown: string): string {
     }
     if (rawLine.trim() === "") {
       flushBlocks();
+      continue;
+    }
+
+    const tableHeader = parseTableRow(rawLine);
+    const tableSeparator = parseTableRow(lines[lineIndex + 1] ?? "");
+    if (
+      tableHeader !== undefined &&
+      tableSeparator !== undefined &&
+      tableSeparator.length === tableHeader.length &&
+      isTableSeparator(tableSeparator)
+    ) {
+      flushBlocks();
+      const rows: string[][] = [];
+      lineIndex += 2;
+      while (lineIndex < lines.length) {
+        const row = parseTableRow(lines[lineIndex] ?? "");
+        if (row === undefined) {
+          lineIndex -= 1;
+          break;
+        }
+        rows.push(row);
+        lineIndex += 1;
+      }
+      output.push(renderTable(tableHeader, rows));
       continue;
     }
 
@@ -196,6 +272,11 @@ export function renderDesignReview(
       .design code { padding: 2px 5px; border-radius: 5px; background: #f0f2f5; }
       .design pre { overflow: auto; padding: 14px; border-radius: 10px; background: #171a1f; color: #f6f7f9; }
       .design blockquote { margin: 16px 0; padding: 8px 14px; border-left: 3px solid #9ba5b4; color: #596473; }
+      .table-wrap { overflow-x: auto; margin: 16px 0; }
+      table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+      th, td { padding: 10px 12px; border: 1px solid #dfe3e8; text-align: left; vertical-align: top; }
+      th { background: #f1f4f8; font-weight: 700; }
+      tbody tr:nth-child(even) { background: #fafbfc; }
       .decision-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
       .decision { padding: 14px; border: 1px solid #e0e4ea; border-radius: 10px; background: #fbfcfd; }
       .decision-heading { display: flex; gap: 12px; align-items: start; justify-content: space-between; }

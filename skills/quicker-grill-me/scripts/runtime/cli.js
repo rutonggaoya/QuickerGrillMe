@@ -3,6 +3,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { persistDesignReview, renderDesignReview } from "./review.js";
 import { startQuestionnaireServer } from "./server.js";
 import { ValidationError } from "./errors.js";
@@ -152,6 +153,8 @@ async function main() {
         const designMarkdown = await readFile(requiredPath(argumentsParsed.designPath, "Final design"), "utf8");
         await persistDesignReview(argumentsParsed.outputPath, renderDesignReview(questionnaire, submission, designMarkdown));
         process.stdout.write(`Design review saved to ${argumentsParsed.outputPath}\n`);
+        process.stdout.write(`Final HTML: ${pathToFileURL(argumentsParsed.outputPath).href}\n`);
+        process.stdout.write(`Plan Markdown: ${pathToFileURL(requiredPath(argumentsParsed.designPath, "Final design")).href}\n`);
         return;
     }
     const running = await startQuestionnaireServer({
