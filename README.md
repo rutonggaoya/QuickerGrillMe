@@ -14,7 +14,7 @@ Invoke it as:
 
 If the host does not support slash invocation, say: **Use the quicker-grill-me skill to stress-test this design before implementation.**
 
-The Agent inspects the proposal and available code for factual context, generates only questions whose answers materially change the design, and opens the bundled local questionnaire automatically. The questionnaire preselects recommendations, records explicit temporary defaults for deferred decisions, saves the answer artifact locally, and closes. The completed workflow persists `final-design.md` as the editable implementation plan, generates a self-contained `design-review.html` with the complete decision record, and returns links to both files in the Agent response. End users do not clone the repository, install project dependencies, or compile TypeScript.
+The Agent inspects the proposal and available code for factual context, generates only questions whose answers materially change the design, and opens the bundled local questionnaire automatically. The questionnaire preselects recommendations, records explicit temporary defaults for deferred decisions, saves the answer artifact locally, and closes. The completed workflow persists `final-design.md` as the **Agent Design Plan**, generates a self-contained **Questionnaire Results & Design Summary** HTML with key decisions first, and returns clearly labeled links to both files. End users do not clone the repository, install project dependencies, or compile TypeScript.
 
 QuickerGrillMe is local-only and lightweight. The runtime binds to `127.0.0.1`, serves fixed bundled assets, makes no external browser requests, and writes a readable JSON answer artifact. It exits after submission or when the questionnaire page is closed, while allowing ordinary page refreshes to reconnect during a short grace period.
 
@@ -28,7 +28,7 @@ After at most two bounded questionnaire rounds, the Agent produces:
 - deferred validation items with temporary defaults and triggers;
 - a full default-ledger appendix.
 
-The Agent stops before implementation and asks the user to confirm shared understanding.
+The Agent stops before implementation and returns the review HTML and editable plan Markdown links without an additional confirmation prompt. If material confidence is insufficient after round one, it generates the bounded second-round questionnaire directly.
 
 ## Update or remove
 

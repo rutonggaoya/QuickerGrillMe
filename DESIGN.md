@@ -33,7 +33,7 @@ stateDiagram-v2
     RoundOne --> ReviewChanges
     ReviewChanges --> AnswersPersisted
     AnswersPersisted --> RoundTwoAssessment
-    RoundTwoAssessment --> RoundTwo: conflict, invalid premise, or high-risk unknown
+    RoundTwoAssessment --> RoundTwo: conflict, invalid premise, high-risk unknown, or insufficient confidence
     RoundTwoAssessment --> FinalDesign: no trigger
     RoundTwo --> AnswersPersisted: maximum 3-5 follow-ups
     AnswersPersisted --> FinalDesign: round 2 complete
@@ -121,13 +121,15 @@ The answer record distinguishes `recommended`, `changed`, `custom`, and `deferre
 
 ## Round two
 
-Round two is generated only when round-one answers reveal at least one of:
+Round two is generated directly when round-one answers reveal at least one of:
 
 1. two answers that cannot both be satisfied;
 2. an answer that invalidates a key premise used to construct the questionnaire;
-3. an unresolved high-risk unknown whose plausible outcomes require materially different designs.
+3. an unresolved high-risk unknown whose plausible outcomes require materially different designs;
+4. a low-confidence selected answer or temporary default for a high-impact decision;
+5. interacting medium-confidence, high-impact decisions that prevent a reliable final design.
 
-A changed recommendation alone is not a trigger. Round two contains 3–5 questions maximum and is the final round. The Agent should prefer a temporary default plus validation plan when another question would not resolve the uncertainty.
+A changed recommendation alone is not a trigger. Confidence is a trigger only when a follow-up can resolve missing intent, evidence, or a concrete tradeoff. Round two contains 3–5 questions maximum and is the final round. The Agent should prefer a temporary default plus validation plan when another question would not resolve the uncertainty.
 
 ## Stop conditions
 
@@ -155,7 +157,9 @@ After reading `answers.json`, the Agent produces a complete design document with
 
 The final document must reconcile answers rather than copy questionnaire text. If round two is required, final generation waits until it is complete.
 
-The Agent must write the complete document to `final-design.md`, then invoke `render-review` to produce `design-review.html`. The HTML includes the reconciled design and complete visible questionnaire decision record. It is self-contained, read-only, and suitable for any static host. Hosting remains an explicit boundary: organization-only or invited-reviewer access must be enforced by the selected publishing platform, not implied by the file.
+The Agent must write the complete document to `final-design.md`, then invoke `render-review` to produce `design-review.html`. The HTML presents **Key design decisions** first, followed by the reconciled design. It is self-contained, read-only, and suitable for any static host. Hosting remains an explicit boundary: organization-only or invited-reviewer access must be enforced by the selected publishing platform, not implied by the file.
+
+After generation, the Agent returns the clickable `Questionnaire Results & Design Summary (HTML)` and `Agent Design Plan (Markdown)` links and explains that the Markdown is the editable source for later modification or implementation. Artifact delivery ends the workflow; the Agent must not add a final confirmation question.
 
 ## Contracts
 

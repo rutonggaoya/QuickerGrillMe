@@ -21,7 +21,7 @@ Separate:
 - **Defaults** the Agent can choose safely.
 - **Unknowns** that need later evidence rather than preference.
 
-Do not begin implementing the resulting design during this skill. The final step is explicit confirmation of shared understanding.
+Do not begin implementing the resulting design during this skill. The final step is delivery of the generated review and plan artifact links; do not ask for an additional confirmation after generation.
 
 ### 2. Select only material questions
 
@@ -78,13 +78,15 @@ If a browser cannot be used, present the ordered questions in the host UI or cha
 
 ### 5. Decide whether round two is warranted
 
-Do not create a second round merely because the user changed recommendations. Round two is allowed only when round-one answers reveal:
+Do not create a second round merely because the user changed recommendations. Generate round two directly, without asking whether to proceed, when round-one answers reveal:
 
 1. answers that cannot both be satisfied;
 2. an answer that invalidates a key premise used to generate round one; or
-3. an unresolved high-risk unknown whose plausible outcomes require materially different designs.
+3. an unresolved high-risk unknown whose plausible outcomes require materially different designs;
+4. a high-impact decision whose selected answer or temporary default has low confidence; or
+5. multiple medium-confidence, high-impact decisions whose interaction prevents a reliable final design.
 
-When triggered, generate exactly one final questionnaire with 3-5 material follow-ups, use a distinct questionnaire and answer path, and run:
+Confidence alone is not a reason to ask a redundant follow-up: each round-two question must be capable of increasing confidence by resolving missing intent, evidence, or a concrete tradeoff. When triggered, generate exactly one final questionnaire with 3-5 material follow-ups, use a distinct questionnaire and answer path, and run:
 
 ```text
 node "<SKILL_DIR>/scripts/runtime/cli.js" serve "<round-2-questionnaire-path>" --output "<round-2-answers-path>" --round 2
@@ -114,11 +116,11 @@ Persist that complete design as `final-design.md` in the working-artifact direct
 node "<SKILL_DIR>/scripts/runtime/cli.js" render-review "<questionnaire-path>" "<answers-path>" "<final-design.md-path>" --output "<design-review.html-path>"
 ```
 
-The HTML makes no external requests and is ready to upload to a static host. It does not implement authentication. Because the intended access is organization members or invited reviewers, publish it only through a host that enforces those permissions. If no approved host or publisher integration is available, provide the local `file://` URL printed as `Final HTML` and do not upload it to a public service. The command also prints the canonical plan document as `Plan Markdown`.
+The HTML makes no external requests and is ready to upload to a static host. It does not implement authentication. Because the intended access is organization members or invited reviewers, publish it only through a host that enforces those permissions. If no approved host or publisher integration is available, provide the local `file://` URL printed as `Questionnaire Results & Design Summary (HTML)` and do not upload it to a public service. The command also prints the canonical plan document as `Agent Design Plan (Markdown)`.
 
 After the questionnaire submission has been reconciled and the review page has been generated, the Agent's final response must include both exact clickable URLs emitted by `render-review`:
 
-- `Final HTML`: the read-only review page.
-- `Plan Markdown`: the editable source of truth for later design changes or implementation.
+- `Questionnaire Results & Design Summary (HTML)`: the read-only combined view of key questionnaire decisions and the reconciled design.
+- `Agent Design Plan (Markdown)`: the editable Agent-authored design plan and source of truth for later changes or implementation.
 
-Also state the plan file name and explain that the user can start a later task by asking the Agent to modify or implement from that Markdown file. Then ask the user to confirm that the design captures the shared understanding. Do not finish with only an answer JSON path, and do not implement until that confirmation is received.
+Also state the plan file name and explain that the user can start a later task by asking the Agent to modify or implement from that Markdown file. End after delivering these artifacts. Do not call an interactive question tool or ask the user to confirm that the design captures the shared understanding, and do not finish with only an answer JSON path.

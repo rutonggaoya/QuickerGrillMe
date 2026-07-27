@@ -203,11 +203,18 @@ test("bundled skill runs without project dependencies from a path containing spa
     );
     assert.equal(review.status, 0, review.stderr);
     assert.match(review.stdout, /Design review saved to/);
-    assert.match(review.stdout, /Final HTML: file:\/\/\//);
-    assert.match(review.stdout, /Plan Markdown: file:\/\/\//);
+    assert.match(
+      review.stdout,
+      /Questionnaire Results & Design Summary \(HTML\): file:\/\/\//
+    );
+    assert.match(review.stdout, /Agent Design Plan \(Markdown\): file:\/\/\//);
     const reviewHtml = await readFile(reviewPath, "utf8");
     assert.match(reviewHtml, /<h1>Final design<\/h1>/);
-    assert.match(reviewHtml, /Questionnaire decision record/);
+    assert.match(reviewHtml, /Key design decisions/);
+    assert.ok(
+      reviewHtml.indexOf("Key design decisions") <
+        reviewHtml.indexOf("<h1>Final design</h1>")
+    );
     assert.doesNotMatch(reviewHtml, /<script>/);
   } finally {
     if (child !== undefined && child.exitCode === null) {

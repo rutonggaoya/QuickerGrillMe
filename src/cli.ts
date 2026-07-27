@@ -198,9 +198,13 @@ async function main(): Promise<void> {
       renderDesignReview(questionnaire, submission, designMarkdown)
     );
     process.stdout.write(`Design review saved to ${argumentsParsed.outputPath}\n`);
-    process.stdout.write(`Final HTML: ${pathToFileURL(argumentsParsed.outputPath).href}\n`);
     process.stdout.write(
-      `Plan Markdown: ${pathToFileURL(
+      `Questionnaire Results & Design Summary (HTML): ${pathToFileURL(
+        argumentsParsed.outputPath
+      ).href}\n`
+    );
+    process.stdout.write(
+      `Agent Design Plan (Markdown): ${pathToFileURL(
         requiredPath(argumentsParsed.designPath, "Final design")
       ).href}\n`
     );

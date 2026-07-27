@@ -153,8 +153,8 @@ async function main() {
         const designMarkdown = await readFile(requiredPath(argumentsParsed.designPath, "Final design"), "utf8");
         await persistDesignReview(argumentsParsed.outputPath, renderDesignReview(questionnaire, submission, designMarkdown));
         process.stdout.write(`Design review saved to ${argumentsParsed.outputPath}\n`);
-        process.stdout.write(`Final HTML: ${pathToFileURL(argumentsParsed.outputPath).href}\n`);
-        process.stdout.write(`Plan Markdown: ${pathToFileURL(requiredPath(argumentsParsed.designPath, "Final design")).href}\n`);
+        process.stdout.write(`Questionnaire Results & Design Summary (HTML): ${pathToFileURL(argumentsParsed.outputPath).href}\n`);
+        process.stdout.write(`Agent Design Plan (Markdown): ${pathToFileURL(requiredPath(argumentsParsed.designPath, "Final design")).href}\n`);
         return;
     }
     const running = await startQuestionnaireServer({

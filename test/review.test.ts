@@ -54,7 +54,11 @@ test("renders and persists a self-contained review with the full decision record
 
   assert.match(html, /<h1>Final design<\/h1>/);
   assert.match(html, /<strong>controlled rollout<\/strong>/);
-  assert.match(html, /Questionnaire decision record/);
+  assert.match(html, /Key design decisions/);
+  assert.ok(
+    html.indexOf("Key design decisions") < html.indexOf("<h1>Final design</h1>"),
+    "key design decisions should appear before the design plan"
+  );
   assert.match(html, /How should &lt;delivery&gt; work\?/);
   assert.match(html, /Validate when:<\/strong> Before launch/);
   assert.match(html, /organization or invited reviewers only/);

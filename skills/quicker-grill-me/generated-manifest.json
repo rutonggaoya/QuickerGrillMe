@@ -4,7 +4,7 @@
   "files": {
     "scripts/runtime/cli.js": {
       "source": "dist/src/cli.js",
-      "sha256": "1741098473cab0c74a085dbdfb57d7e2701f9504359844f84d4140b6655a8a78"
+      "sha256": "14a5e59c5caec1218f75471e479b0c6caec4d5e350289183ac7b6c7bd541d1d1"
     },
     "scripts/runtime/errors.js": {
       "source": "dist/src/errors.js",
@@ -24,7 +24,7 @@
     },
     "scripts/runtime/review.js": {
       "source": "dist/src/review.js",
-      "sha256": "e55df4fb7cc167962fc9bd3ee61c28cc27a942819ab3837879fd22ce7084d2d9"
+      "sha256": "172c63147dd607bde4fa61a908b3cc56dcda9a4672309f474a4ab34f44d2e66a"
     },
     "scripts/runtime/select.js": {
       "source": "dist/src/select.js",
