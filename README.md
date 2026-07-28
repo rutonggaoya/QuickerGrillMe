@@ -63,6 +63,20 @@ The completed example includes:
 
 Supporting JSON artifacts are included in the same folder for inspection and reproducibility.
 
+### Questionnaire
+
+The questionnaire presents only material decisions, with the Agent recommendation preselected and its rationale visible.
+
+![Global Feature Flag questionnaire with recommended options selected](examples/global-feature-flags/questionnaire-preview.png)
+
+### Design review
+
+The review puts key decisions first, followed by the complete design plan.
+
+| Key design decisions | Reconciled design |
+| --- | --- |
+| ![Design Review key decisions](examples/global-feature-flags/design-review-decisions.png) | ![Design Review final design plan](examples/global-feature-flags/design-review-plan.png) |
+
 ## Design and technology
 
 The workflow follows four rules:
