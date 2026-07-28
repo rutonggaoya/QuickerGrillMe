@@ -41,28 +41,27 @@ The final design covers the applicable architecture, interfaces, behavior, failu
 
 ## End-to-end example
 
-Start with a short proposal:
+The [`examples/global-feature-flags/`](examples/global-feature-flags/) example designs a global Feature Flag platform with in-process evaluation, multi-region distribution, bounded consistency, safe rollout, and failure recovery.
+
+Start with this proposal:
 
 ```text
-We need to add webhook delivery to our API.
-Events should be delivered asynchronously, retried on transient failures,
-and visible to customers in a delivery history page.
+Design a global Feature Flag platform for services running in multiple regions.
+Flag evaluation is on the request path, changes must propagate quickly, and
+applications must keep working during control-plane or regional failures.
 
 Use the quicker-grill-me skill to stress-test this design before implementation.
 ```
 
-QuickerGrillMe then:
+The completed example includes:
 
-1. inspects the proposal and relevant repository context;
-2. opens a bounded questionnaire covering material choices such as delivery guarantees, retry limits, signing, retention, and failure handling;
-3. records your changes, explicit deferrals, and the recommendations you accepted;
-4. returns `final-design.md` and `design-review.html`.
+| Artifact | What it shows |
+| --- | --- |
+| [Questionnaire](examples/global-feature-flags/questionnaire.html) | The material decisions, available options, recommendations, and submitted selections |
+| [Agent Design Plan](examples/global-feature-flags/final-design.md) | The resulting architecture, contracts, failure behavior, rollout, and validation plan |
+| [Design Review](examples/global-feature-flags/design-review.html) | A self-contained view of the decisions and reconciled design |
 
-You can continue in a later task with:
-
-```text
-Implement the design in final-design.md.
-```
+Supporting JSON artifacts are included in the same folder for inspection and reproducibility.
 
 ## Design and technology
 

@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+    <title>Design a global Feature Flag platform — Design review</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #17202a; background: #f7f8fa; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 56px; }
+      header, .design, .decisions { padding: 24px; border: 1px solid #d9dee7; border-radius: 14px; background: #fff; box-shadow: 0 3px 12px rgb(27 39 51 / 6%); }
+      header { margin-bottom: 16px; }
+      h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 4vw, 2.6rem); }
+      h2 { margin-top: 0; }
+      h3 { margin: 0; font-size: 1rem; line-height: 1.35; }
+      p, li { line-height: 1.55; }
+      .subtitle { margin: 0; color: #5e6875; }
+      .notice { margin: 18px 0 0; padding: 10px 12px; border-left: 3px solid #4b5fc0; background: #f0f3ff; color: #33408d; font-size: .88rem; }
+      .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+      .facts span, .status { padding: 4px 8px; border-radius: 999px; background: #eef1f5; font-size: .76rem; font-weight: 700; text-transform: capitalize; }
+      .decisions { margin-bottom: 16px; }
+      .design h1 { font-size: 1.8rem; }
+      .design h2 { margin-top: 1.8rem; padding-bottom: 6px; border-bottom: 1px solid #e4e7ec; }
+      .design h3 { margin-top: 1.3rem; font-size: 1.1rem; }
+      .design code { padding: 2px 5px; border-radius: 5px; background: #f0f2f5; }
+      .design pre { overflow: auto; padding: 14px; border-radius: 10px; background: #171a1f; color: #f6f7f9; }
+      .design blockquote { margin: 16px 0; padding: 8px 14px; border-left: 3px solid #9ba5b4; color: #596473; }
+      .table-wrap { overflow-x: auto; margin: 16px 0; }
+      table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+      th, td { padding: 10px 12px; border: 1px solid #dfe3e8; text-align: left; vertical-align: top; }
+      th { background: #f1f4f8; font-weight: 700; }
+      tbody tr:nth-child(even) { background: #fafbfc; }
+      .decision-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .decision { padding: 14px; border: 1px solid #e0e4ea; border-radius: 10px; background: #fbfcfd; }
+      .decision-heading { display: flex; gap: 12px; align-items: start; justify-content: space-between; }
+      .status.deferred { background: #fff0d8; color: #875b12; }
+      .answer { margin: 10px 0; font-weight: 750; color: #263f8f; }
+      dl { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; color: #687384; font-size: .8rem; }
+      dl div { display: flex; gap: 4px; }
+      dt { font-weight: 700; }
+      dd { margin: 0; text-transform: capitalize; }
+      .affected, .validation { margin: 10px 0 0; color: #5e6875; font-size: .84rem; }
+      .validation { padding: 8px 10px; border-radius: 7px; background: #fff7e9; color: #774d08; }
+      footer { padding: 18px 4px 0; color: #6c7684; font-size: .8rem; text-align: center; }
+      @media (max-width: 760px) { main { width: min(100% - 16px, 1120px); padding-top: 12px; } header, .design, .decisions { padding: 16px; } .decision-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Design a global Feature Flag platform</h1>
+        <p class="subtitle">Resolve the decisions that materially change evaluation latency, consistency, failure behavior, privacy, and multi-region operations.</p>
+        <div class="facts">
+          <span>Review requested</span>
+          <span>deep depth</span>
+          <span>Round 1</span>
+          <span>13 decisions</span>
+          <span>0 deferred</span>
+        </div>
+        <p class="notice"><strong>Access intent:</strong> organization or invited reviewers only. This file does not enforce authentication; upload it only to a host with the required access controls.</p>
+      </header>
+      <section class="decisions">
+        <h2>Key design decisions</h2>
+        <div class="decision-grid"><article class="decision">
+    <div class="decision-heading">
+      <h3>What should the data plane optimize for when the control plane or network is unavailable?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Availability first with bounded staleness</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> data-plane availability, staleness budget, SDK failure behavior</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>Where should production flag evaluation run?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">In-process SDK</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> latency SLO, SDK responsibility, data-plane topology</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>What propagation guarantee should operators receive after publishing a flag change?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Tiered consistency</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>medium</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> publication protocol, operator guarantees, emergency flag semantics</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>How should configuration reach globally distributed SDKs?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Regional streams with polling fallback</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> regional relay design, snapshot API, reconnect behavior</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>How should flag writes work across regions?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Single writer with regional failover</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> write routing, failover runbook, version authority</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>Which safeguards should be mandatory for high-impact flag changes?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Progressive rollout stages, Metric-triggered rollback, Second-person approval</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>medium</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> change workflow, metric integration, rollback semantics</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>How strongly should the platform enforce flag cleanup?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Owner and expiry required</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>medium</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> flag metadata, cleanup automation, ownership model</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>How much user or tenant data may enter the evaluation engine?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Typed context evaluated locally</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> privacy boundary, targeting schema, telemetry redaction</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>What must an SDK verify before activating a new configuration snapshot?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Control-plane signature, Monotonic version, Schema and semantic validation</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> snapshot format, key management, activation transaction</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>What evaluation telemetry should the platform collect by default?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Sampled aggregate counters</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>medium</dd></div>
+      <div><dt>Impact</dt><dd>medium</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> telemetry schema, privacy review, cost envelope</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>Should experimentation analytics be part of the initial platform boundary?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Separate experimentation integration</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>medium</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> platform scope, assignment stability, event integration</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>What recovery path should exist for a bad global configuration or control-plane loss?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Immutable version history, Explicit signed rollback, Application defaults only</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> history retention, rollback protocol, application fallback contract</p>
+    
+  </article>
+<article class="decision">
+    <div class="decision-heading">
+      <h3>How should rule semantics evolve across many SDK languages?</h3>
+      <span class="status answered">Decided</span>
+    </div>
+    <p class="answer">Versioned rule IR with conformance suite</p>
+    <dl>
+      <div><dt>Source</dt><dd>recommended</dd></div>
+      <div><dt>Confidence</dt><dd>high</dd></div>
+      <div><dt>Impact</dt><dd>high</dd></div>
+    </dl>
+    <p class="affected"><strong>Affects:</strong> rule contract, SDK release process, compatibility policy</p>
+    
+  </article></div>
+      </section>
+      <section class="design">
+        <h1>Global Feature Flag Platform</h1>
+<h2>1. Goals, scope, and non-goals</h2>
+<h3>Goals</h3>
+<ul><li>Evaluate flags inside application processes without a network hop on the request path.</li><li>Keep evaluation available during control-plane, relay, or regional network failures.</li><li>Propagate normal changes globally within a bounded, observable interval and provide a faster path for emergency flags.</li><li>Produce identical results across supported SDK languages for the same configuration and context.</li><li>Limit targeting-data and telemetry exposure while retaining enough evidence to operate safe rollouts.</li><li>Make every production change auditable, reversible, and attributable to an owner.</li></ul>
+<h3>Initial service objectives</h3>
+<div class="table-wrap"><table><thead><tr><th>Objective</th><th>Initial target</th></tr></thead><tbody><tr><td>Evaluation latency</td><td>p99 below 1 ms after SDK initialization</td></tr><tr><td>Evaluation availability</td><td>99.999% while a valid local snapshot exists</td></tr><tr><td>Normal propagation</td><td>p99 below 30 seconds across healthy regions</td></tr><tr><td>Emergency propagation</td><td>p99 below 5 seconds across healthy regions</td></tr><tr><td>Control-plane write availability</td><td>99.9% monthly</td></tr><tr><td>Maximum stale operation</td><td>24 hours before SDKs fall back to application defaults</td></tr></tbody></table></div>
+<p>These values are launch defaults, not questionnaire decisions. Load tests, regional propagation tests, and failure game days must validate them before general availability.</p>
+<h3>Scope</h3>
+<p>The first platform release includes flag authoring, typed targeting rules, percentage rollout, immutable version history, local SDK evaluation, regional distribution, progressive delivery safeguards, audit logs, lifecycle enforcement, and operational telemetry.</p>
+<h3>Non-goals</h3>
+<ul><li>Statistical experiment analysis. The platform provides stable assignments and an integration contract to a separate experimentation system.</li><li>Central storage of raw user or tenant profiles.</li><li>Per-evaluation remote API calls.</li><li>Arbitrary executable rule code.</li><li>A multi-writer global control plane in the first release.</li></ul>
+<h2>2. Architecture</h2>
+<pre><code>Operators
+   |
+   v
+Global API / Authoring UI
+   |
+   v
+Home-region write service ---&gt; Immutable audit and version store
+   |                                      |
+   | signed, versioned snapshot           |
+   v                                      |
+Regional snapshot store &lt;-----------------+
+   |
+   +--&gt; Regional notification relays
+   |          |
+   |          v
+   +------&gt; Application SDKs
+                |
+                +--&gt; Atomic local snapshot
+                +--&gt; In-process rule evaluator
+                +--&gt; Sampled aggregate telemetry</code></pre>
+<h3>Control plane</h3>
+<p>One home region is the ordered write authority. A warm standby can be promoted through a controlled failover that fences the old writer before issuing new versions. This is intentionally simpler than global multi-writer consensus because writes are low volume and do not participate in application evaluation.</p>
+<p>Each accepted change creates:</p>
+<ol><li>an immutable change record containing actor, approval, reason, and previous version;</li><li>a monotonically increasing project version;</li><li>a canonical rule intermediate representation;</li><li>a signed, content-addressed snapshot;</li><li>a publication record tracking regional convergence.</li></ol>
+<p>The authoring API uses optimistic concurrency. A write names the base project version and fails with a conflict if another publication has advanced it.</p>
+<h3>Regional distribution</h3>
+<p>The control plane replicates immutable snapshots to each regional store. Regional relays stream version notifications, not full mutable state. On notification, SDKs fetch the referenced snapshot from the regional store.</p>
+<p>SDKs also poll every 60 seconds with jitter. Polling is the recovery path when a stream is disconnected, a notification is lost, or a relay is unavailable. Reconnects use exponential backoff capped at 30 seconds and include the last activated version so the relay can send only the newest reference.</p>
+<h3>SDK data plane</h3>
+<p>SDKs evaluate flags in process from one immutable snapshot. Activating a snapshot is an atomic pointer swap; concurrent requests see either the previous complete snapshot or the new complete snapshot.</p>
+<p>Before activation, an SDK verifies:</p>
+<ul><li>the control-plane signature against a pinned, rotatable trust set;</li><li>the project identity and environment;</li><li>the monotonic version, unless the snapshot contains an explicit signed rollback authorization;</li><li>snapshot and rule-IR schema compatibility;</li><li>references, defaults, and rule semantics.</li></ul>
+<p>Failed validation leaves the last valid snapshot active and emits an operational alert. SDK initialization loads the last verified snapshot from local encrypted storage when available, then refreshes asynchronously.</p>
+<h2>3. Rule and evaluation contract</h2>
+<p>Rules compile to a versioned, language-neutral intermediate representation. Each SDK implements the same evaluator contract and must pass shared conformance vectors before release.</p>
+<p>Evaluation order is deterministic:</p>
+<ol><li>confirm project, environment, and flag existence;</li><li>validate the typed context required by the flag;</li><li>evaluate explicit prerequisites;</li><li>evaluate ordered targeting rules;</li><li>compute percentage allocation using a specified hash algorithm, salt, and stable subject key;</li><li>return the matched variant or the flag&#39;s configured default.</li></ol>
+<p>Unknown attributes do not coerce across types. Invalid context skips the affected rule and emits a sampled diagnostic; it never changes another rule&#39;s ordering. Cyclic flag prerequisites are rejected at publication.</p>
+<p>SDK compatibility follows an <code>N</code> and <code>N-1</code> rule-IR policy. The control plane may publish only features supported by the minimum SDK version configured for that environment. Unsupported snapshots are rejected rather than partially interpreted.</p>
+<h2>4. Targeting and privacy boundary</h2>
+<p>Applications provide a typed local evaluation context containing only attributes approved for that project. Raw context remains inside the process and is not uploaded with operational telemetry.</p>
+<p>Percentage rollout uses a stable project-scoped hash of an application-provided subject key. The platform does not need the raw identifier. If cohort membership must be distributed, it uses opaque, project-scoped cohort IDs rather than copied profile attributes.</p>
+<p>The default telemetry path reports sampled aggregates keyed by project, environment, flag, version, variant, SDK language, SDK version, and region. It excludes raw subject IDs, free-form context, and rule input values. High-cardinality debugging requires an explicit time-bounded diagnostic mode and privacy approval.</p>
+<h2>5. Consistency and failure behavior</h2>
+<h3>Normal changes</h3>
+<p>Normal publication is bounded eventual consistency. The API acknowledges once the version is durable in the home region and publication has begun. The UI shows convergence by region and does not claim global completion until every required region reports the version available.</p>
+<h3>Emergency flags</h3>
+<p>Flags marked <code>emergency</code> use the same signed snapshot format but receive priority replication, dedicated relay capacity, and stricter convergence alarms. They may bypass scheduled change windows, but still require authorization, an audit reason, and a second approver unless the incident role explicitly grants break-glass access.</p>
+<p>The platform does not promise simultaneous global activation. Operators receive the observed regional version distribution and must design emergency actions to tolerate a short mixed-version interval.</p>
+<h3>Data-plane degradation</h3>
+<div class="table-wrap"><table><thead><tr><th>Condition</th><th>Behavior</th></tr></thead><tbody><tr><td>Stream unavailable</td><td>Poll regional snapshot store with jitter</td></tr><tr><td>Regional store unavailable</td><td>Keep the last verified snapshot</td></tr><tr><td>Snapshot invalid</td><td>Reject it, retain the previous snapshot, alert</td></tr><tr><td>Snapshot age exceeds warning threshold of 15 minutes</td><td>Emit stale-configuration warning</td></tr><tr><td>Snapshot age reaches 24 hours</td><td>Use application-compiled defaults and emit a critical health signal</td></tr><tr><td>No cached snapshot at startup</td><td>Use application defaults until a valid snapshot arrives</td></tr></tbody></table></div>
+<p>Applications must define a typed default for every flag. The SDK never invents a value and never blocks a request while waiting for the control plane.</p>
+<h2>6. Release safety</h2>
+<p>Production and emergency-class changes require:</p>
+<ul><li>a second-person approval;</li><li>a reason and linked change or incident;</li><li>progressive rollout stages;</li><li>linked guardrail metrics;</li><li>an automatic rollback policy.</li></ul>
+<p>The default progressive sequence is internal, 1%, 5%, 25%, 50%, and 100%, with a configurable observation period between stages. Services can remove stages only through an environment policy, not per-change convenience.</p>
+<p>Automatic rollback creates a new signed monotonic version that restores the prior configuration. It never asks SDKs to accept an unsigned lower version. Rollback triggers when an approved guardrail breaches its threshold for the configured evaluation window; missing or delayed telemetry pauses progression rather than declaring success.</p>
+<h2>7. Recovery and disaster readiness</h2>
+<p>Every published snapshot and audit record is immutable. Restoring a prior configuration produces a new version with an explicit reference to the restored version.</p>
+<p>Home-region failover requires:</p>
+<ol><li>confirming the old writer is fenced;</li><li>verifying replicated audit and version state;</li><li>promoting the standby version authority;</li><li>publishing a no-op signed version to prove the new path;</li><li>reopening operator writes.</li></ol>
+<p>Regional relays and snapshot stores can be rebuilt from immutable history. SDKs remain on their last verified snapshots during reconstruction.</p>
+<p>A quarterly game day must cover a bad global rule, home-region loss, regional relay loss, signing-key rotation, and rollback while the primary region is unavailable.</p>
+<h2>8. Operations and observability</h2>
+<p>The platform exposes:</p>
+<ul><li>publication latency and convergence by version and region;</li><li>connected SDK versions and snapshot age distributions;</li><li>snapshot fetch, signature, schema, and activation failures;</li><li>evaluation counts and variants as sampled aggregates;</li><li>rollout stage, guardrail state, pause, and rollback events;</li><li>stale flag inventory, owner, expiry, and last evaluation time.</li></ul>
+<p>Alerts focus on user-visible risk: propagation SLO breaches, a growing stale-SDK population, signature failures, incompatible SDKs, writer fencing failures, and rollback failure.</p>
+<p>Every temporary flag requires an owner and expiry. Owners receive reminders 14 and 3 days before expiry. Expired flags stop accepting rollout expansion and escalate to the owning team&#39;s manager or service owner. Long-lived operational flags use a distinct type with an annual review instead of bypassing lifecycle metadata.</p>
+<h2>9. Rollout plan</h2>
+<ol><li>Implement the rule IR, reference evaluator, and cross-language conformance suite.</li><li>Launch the single-region control plane and one SDK against non-production environments.</li><li>Add signed snapshots, immutable history, and local cached startup.</li><li>Deploy regional stores and polling distribution; measure propagation tails.</li><li>Add regional streams and verify polling recovery under relay failure.</li><li>Onboard two services in shadow mode and compare platform results with existing flag logic.</li><li>Enable progressive production rollout with manual rollback.</li><li>Enable metric-triggered rollback after guardrail quality is demonstrated.</li><li>Complete multi-region and signing-key game days before general availability.</li></ol>
+<h2>10. Validation strategy</h2>
+<ul><li>Golden conformance vectors run against every SDK and rule-IR version.</li><li>Property tests verify deterministic percentage allocation and monotonic rollout behavior.</li><li>Load tests cover evaluation latency, SDK startup, relay fan-out, snapshot fetch, and telemetry volume.</li><li>Fault injection covers delayed replication, duplicate and reordered notifications, corrupt snapshots, expired keys, and partial regional failure.</li><li>Privacy tests verify that raw targeting context and subject identifiers never enter default telemetry.</li><li>End-to-end tests publish, progressively roll out, pause, roll back, fail over the writer, and reconstruct a regional store.</li></ul>
+<h2>11. Decision summary</h2>
+<div class="table-wrap"><table><thead><tr><th>Decision</th><th>Selected direction</th><th>Material consequence</th></tr></thead><tbody><tr><td>Availability</td><td>Serve the last verified snapshot</td><td>Application requests remain independent of control-plane health</td></tr><tr><td>Evaluation</td><td>In-process SDK</td><td>Lowest latency, but requires strict cross-language conformance</td></tr><tr><td>Consistency</td><td>Tiered</td><td>Normal changes are bounded eventual; emergency flags receive a prioritized path</td></tr><tr><td>Distribution</td><td>Regional stream plus polling</td><td>Fast propagation with a simple recovery mechanism</td></tr><tr><td>Writes</td><td>Single home-region writer</td><td>Ordered audit history and simpler conflict handling</td></tr><tr><td>Targeting</td><td>Typed local context</td><td>Raw user and tenant attributes stay inside applications</td></tr><tr><td>Integrity</td><td>Signature, monotonic version, semantic validation</td><td>Invalid global configuration cannot partially activate</td></tr><tr><td>Safety</td><td>Progressive rollout, approval, automatic rollback</td><td>High-impact changes reduce blast radius and have an automated escape path</td></tr><tr><td>Telemetry</td><td>Sampled aggregates</td><td>Operational insight without default per-user event collection</td></tr><tr><td>Recovery</td><td>Immutable history and signed rollback</td><td>Rollback remains auditable and compatible with monotonic versions</td></tr><tr><td>Experimentation</td><td>Separate integration</td><td>Statistical correctness and data processing stay outside the delivery core</td></tr></tbody></table></div>
+<h2>12. Defaults and assumptions</h2>
+<ul><li>The launch deployment uses three regions with one home writer and one promotion candidate.</li><li>Normal and emergency propagation targets are 30 seconds and 5 seconds at p99.</li><li>SDKs poll every 60 seconds with jitter even when streaming is healthy.</li><li>SDKs warn after 15 minutes of snapshot staleness and use application defaults after 24 hours.</li><li>Every flag has an application-owned typed default.</li><li>Production changes require approval and progressive rollout.</li><li>Raw targeting context is never part of default platform telemetry.</li></ul>
+<h2>13. Deferred validation items</h2>
+<p>No questionnaire decision was deferred. The following implementation defaults still require evidence:</p>
+<div class="table-wrap"><table><thead><tr><th>Item</th><th>Temporary default</th><th>Confidence</th><th>Validation trigger</th></tr></thead><tbody><tr><td>Propagation SLO</td><td>30 seconds normal, 5 seconds emergency</td><td>Medium</td><td>Three-region load and failure testing</td></tr><tr><td>Maximum stale interval</td><td>24 hours</td><td>Medium</td><td>Review with incident response and regulated workload owners</td></tr><tr><td>Automatic rollback readiness</td><td>Enabled only for approved guardrails</td><td>Medium</td><td>Two services demonstrate low-noise metrics in production</td></tr><tr><td>Rule-IR compatibility window</td><td>Current and previous version</td><td>Medium</td><td>First three SDKs complete conformance and upgrade testing</td></tr></tbody></table></div>
+<h2>Appendix A. Default ledger</h2>
+<div class="table-wrap"><table><thead><tr><th>Default</th><th>Rationale</th></tr></thead><tbody><tr><td>In-process evaluation</td><td>Removes network latency and availability coupling</td></tr><tr><td>Last verified snapshot on failure</td><td>Preserves request-path availability</td></tr><tr><td>Atomic snapshot activation</td><td>Prevents mixed configuration within one process</td></tr><tr><td>Single ordered writer</td><td>Simplifies versioning, audit, and failover</td></tr><tr><td>Regional notifications plus polling</td><td>Combines fast updates with robust recovery</td></tr><tr><td>Signed snapshots</td><td>Verifies provenance beyond transport security</td></tr><tr><td>Explicit signed rollback as a new version</td><td>Preserves monotonic safety and auditability</td></tr><tr><td>Typed local context</td><td>Limits privacy exposure and central dependencies</td></tr><tr><td>Sampled aggregate telemetry</td><td>Controls privacy, cardinality, and cost</td></tr><tr><td>Required owner and expiry</td><td>Prevents indefinite flag accumulation</td></tr><tr><td>Separate experimentation system</td><td>Keeps statistical analysis outside the delivery boundary</td></tr></tbody></table></div>
+      </section>
+      <footer>Generated by QuickerGrillMe at 2026-07-28T02:42:03.688Z. Read-only review artifact; send feedback through your team's existing channel.</footer>
+    </main>
+  </body>
+</html>

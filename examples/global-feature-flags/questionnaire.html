@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <title>Design a global Feature Flag platform — Questionnaire</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #17202a; background: #f5f7fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 36px 0 64px; }
+    header, article { background: #fff; border: 1px solid #d9dee7; border-radius: 16px; box-shadow: 0 3px 12px rgb(27 39 51 / 6%); }
+    header { padding: 28px; margin-bottom: 18px; }
+    h1 { margin: 0 0 10px; font-size: clamp(1.8rem, 4vw, 2.7rem); }
+    header p { margin: 0; color: #52606d; line-height: 1.6; }
+    .meta { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .meta span, .badge { border-radius: 999px; background: #edf2f7; padding: 5px 10px; font-size: .8rem; font-weight: 650; color: #34495e; }
+    article { padding: 24px; margin-top: 16px; }
+    .question-heading { display: flex; align-items: flex-start; gap: 14px; }
+    .number { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #17202a; color: #fff; font-weight: 700; flex: none; }
+    .topic { margin: 0 0 5px; color: #64748b; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+    h2 { margin: 0; font-size: 1.2rem; }
+    ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; }
+    .option { border: 1px solid #dbe2ea; border-radius: 11px; padding: 14px 16px; }
+    .option.selected { border: 2px solid #2563eb; background: #eff6ff; }
+    .option-title { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .option-title span { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .selected-badge { background: #2563eb; color: #fff; }
+    .option p { margin: 6px 0 0; color: #52606d; line-height: 1.45; }
+    .rationale { margin-top: 14px; padding: 12px 14px; border-left: 4px solid #8b5cf6; background: #f5f3ff; line-height: 1.5; }
+    @media (max-width: 600px) { .option-title { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Design a global Feature Flag platform</h1>
+    <p>Resolve the decisions that materially change evaluation latency, consistency, failure behavior, privacy, and multi-region operations.</p>
+    <div class="meta">
+      <span>Submitted questionnaire</span>
+      <span>Depth: deep</span>
+      <span>Round 1</span>
+      <span>13 material decisions</span>
+    </div>
+  </header>
+  <article>
+      <div class="question-heading">
+        <span class="number">1</span>
+        <div><p class="topic">Goals and service boundary · high impact</p><h2>What should the data plane optimize for when the control plane or network is unavailable?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Availability first with bounded staleness</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Continue evaluating from the last verified snapshot and expose its age.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Consistency first</strong><span></span></div>
+          <p>Reject evaluation when fresh configuration cannot be confirmed.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Per-flag failure policy</strong><span></span></div>
+          <p>Let each flag choose stale, default-off, or error behavior.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Feature evaluation commonly sits on critical request paths, so a verified stale snapshot is safer than turning a control-plane incident into a global application outage.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">2</span>
+        <div><p class="topic">Data plane · high impact</p><h2>Where should production flag evaluation run?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>In-process SDK</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Applications evaluate locally from signed, versioned configuration snapshots.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Sidecar or node-local daemon</strong><span></span></div>
+          <p>A local service centralizes evaluation and snapshot distribution per host or cluster.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Remote evaluation API</strong><span></span></div>
+          <p>Applications call a regional service for each evaluation.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Local evaluation removes a network hop from hot paths and preserves availability during regional control-plane failures.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">3</span>
+        <div><p class="topic">Consistency · high impact</p><h2>What propagation guarantee should operators receive after publishing a flag change?</h2></div>
+      </div>
+      <ul><li class="option">
+          <div class="option-title"><strong>Bounded eventual consistency</strong><span></span></div>
+          <p>Publish a target propagation SLO and show per-region convergence status.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Globally ordered activation</strong><span></span></div>
+          <p>Do not acknowledge publication until all required regions can observe one committed version.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Tiered consistency</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Use bounded eventual consistency normally and stronger coordination for emergency flags.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Most flags benefit from fast regional propagation, while kill switches justify a narrower, stronger operational path.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">4</span>
+        <div><p class="topic">Privacy and targeting · high impact</p><h2>How much user or tenant data may enter the evaluation engine?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Typed context evaluated locally</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>SDKs evaluate approved attributes in process and do not send raw context to the platform.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Pseudonymous identifiers only</strong><span></span></div>
+          <p>Allow stable hashed IDs for percentage rollout and cohort membership.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Centralized context service</strong><span></span></div>
+          <p>Upload targeting attributes to support server-side evaluation and analysis.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Keeping evaluation context inside the application minimizes privacy exposure and removes a global user-profile dependency.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">5</span>
+        <div><p class="topic">Distribution · high impact</p><h2>How should configuration reach globally distributed SDKs?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Regional streams with polling fallback</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Regional relays push version notifications; SDKs fetch snapshots and poll when streams fail.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>CDN snapshot polling</strong><span></span></div>
+          <p>SDKs periodically fetch immutable snapshots from a global CDN.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Direct global streaming</strong><span></span></div>
+          <p>Every SDK maintains a stream to the central control plane.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Regional fan-out gives fast propagation without making persistent global connectivity the only recovery path.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">6</span>
+        <div><p class="topic">Distribution · high impact</p><h2>What must an SDK verify before activating a new configuration snapshot?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Control-plane signature</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Verify provenance and reject forged or corrupted snapshots.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Monotonic version</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Reject accidental rollback unless explicitly authorized.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Schema and semantic validation</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Reject malformed rules, missing defaults, and incompatible evaluator versions.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Transport checksum only</strong><span></span></div>
+          <p>Rely on TLS and content checksums without a signed artifact.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> A bad global snapshot can affect every request path, so activation must be atomic and independently verifiable.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">7</span>
+        <div><p class="topic">Control plane · high impact</p><h2>How should flag writes work across regions?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Single writer with regional failover</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Route writes to one home region and promote a standby through a controlled failover.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Multi-region consensus</strong><span></span></div>
+          <p>Accept writes in several regions through one globally ordered log.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Project ownership by region</strong><span></span></div>
+          <p>Assign each project a write region while replicating reads globally.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Configuration writes are low volume; a single ordered authority simplifies auditability, versioning, and conflict handling without affecting local evaluation.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">8</span>
+        <div><p class="topic">Release safety · high impact</p><h2>Which safeguards should be mandatory for high-impact flag changes?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Progressive rollout stages</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Increase exposure through explicit, observable stages.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Metric-triggered rollback</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Revert when linked guardrail metrics breach thresholds.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Second-person approval</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Require review for production or emergency-class changes.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Change windows</strong><span></span></div>
+          <p>Restrict high-impact changes to staffed operating windows.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> A global control surface needs both blast-radius reduction and a fast automated escape path; approval protects against operator error.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">9</span>
+        <div><p class="topic">SDK compatibility · high impact</p><h2>How should rule semantics evolve across many SDK languages?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Versioned rule IR with conformance suite</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Publish a language-neutral evaluator contract and certify SDKs against shared vectors.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Server-compiled lookup tables</strong><span></span></div>
+          <p>Compile rules centrally into simpler runtime-specific artifacts.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Independent SDK implementations</strong><span></span></div>
+          <p>Document behavior and let each language evolve separately.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Local evaluation is only trustworthy when identical context produces identical results across supported runtimes.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">10</span>
+        <div><p class="topic">Observability and privacy · medium impact</p><h2>What evaluation telemetry should the platform collect by default?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Sampled aggregate counters</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Report flag/version/result counts without raw targeting context.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Per-evaluation events</strong><span></span></div>
+          <p>Emit detailed decision events for debugging and experimentation.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Operational health only</strong><span></span></div>
+          <p>Collect snapshot age, errors, and SDK health but no evaluation results.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Aggregates support rollout health and adoption analysis while limiting cost, cardinality, and privacy exposure.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">11</span>
+        <div><p class="topic">Operations · medium impact</p><h2>How strongly should the platform enforce flag cleanup?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Owner and expiry required</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Every temporary flag has an owner, expiry, reminders, and escalation.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Advisory lifecycle metadata</strong><span></span></div>
+          <p>Recommend ownership and expiry without blocking creation.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>External governance</strong><span></span></div>
+          <p>Leave cleanup policy to service teams and inventory tooling.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Stale flags compound evaluator complexity and operational ambiguity; lifecycle metadata is cheapest to capture at creation.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">12</span>
+        <div><p class="topic">Failure recovery · high impact</p><h2>What recovery path should exist for a bad global configuration or control-plane loss?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Immutable version history</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Retain every published snapshot and its audit record.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Explicit signed rollback</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Authorize SDKs to activate a prior version through a new monotonic command.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Offline emergency bundle</strong><span></span></div>
+          <p>Distribute a separately controlled minimal kill-switch artifact.</p>
+        </li><li class="option selected recommended">
+          <div class="option-title"><strong>Application defaults only</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Rely on compiled defaults when no valid platform snapshot is usable.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Recovery needs an auditable rollback that does not weaken monotonic version checks, plus application-owned defaults for total platform loss.</div>
+    </article>
+<article>
+      <div class="question-heading">
+        <span class="number">13</span>
+        <div><p class="topic">Product boundary · medium impact</p><h2>Should experimentation analytics be part of the initial platform boundary?</h2></div>
+      </div>
+      <ul><li class="option selected recommended">
+          <div class="option-title"><strong>Separate experimentation integration</strong><span><span class="badge selected-badge">Selected</span><span class="badge">Recommended</span></span></div>
+          <p>Expose stable assignments and events to a dedicated analytics system.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>Built-in experimentation</strong><span></span></div>
+          <p>Own assignment, exposure logging, metric computation, and statistical analysis.</p>
+        </li><li class="option">
+          <div class="option-title"><strong>No experimentation contract</strong><span></span></div>
+          <p>Limit the platform to operational feature delivery.</p>
+        </li></ul>
+      <div class="rationale"><strong>Agent recommendation:</strong> Flag delivery and statistical analysis have different data, privacy, and correctness concerns; a stable integration avoids coupling their release paths.</div>
+    </article>
+</main>
+</body>
+</html>

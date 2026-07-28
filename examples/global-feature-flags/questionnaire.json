@@ -1,0 +1,535 @@
+{
+  "schemaVersion": "1.0",
+  "metadata": {
+    "id": "global-feature-flag-platform",
+    "title": "Design a global Feature Flag platform",
+    "description": "Resolve the decisions that materially change evaluation latency, consistency, failure behavior, privacy, and multi-region operations.",
+    "version": "1.0.0",
+    "recommendedLevel": "standard",
+    "generatedAt": "2026-07-28T02:30:00Z"
+  },
+  "questions": [
+    {
+      "id": "availability-objective",
+      "prompt": "What should the data plane optimize for when the control plane or network is unavailable?",
+      "topic": "Goals and service boundary",
+      "minLevel": "essential",
+      "complexity": 3,
+      "dependsOn": [],
+      "stage": "goals",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "serve-stale",
+          "label": "Availability first with bounded staleness",
+          "description": "Continue evaluating from the last verified snapshot and expose its age."
+        },
+        {
+          "id": "fail-closed",
+          "label": "Consistency first",
+          "description": "Reject evaluation when fresh configuration cannot be confirmed."
+        },
+        {
+          "id": "per-flag-policy",
+          "label": "Per-flag failure policy",
+          "description": "Let each flag choose stale, default-off, or error behavior."
+        }
+      ],
+      "recommendedOptionId": "serve-stale",
+      "recommendationRationale": "Feature evaluation commonly sits on critical request paths, so a verified stale snapshot is safer than turning a control-plane incident into a global application outage.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "serve-stale",
+        "confidence": "high",
+        "validationTrigger": "Revisit if a regulated workload requires proof of immediate revocation for specific flags."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["data-plane availability", "staleness budget", "SDK failure behavior"]
+    },
+    {
+      "id": "evaluation-location",
+      "prompt": "Where should production flag evaluation run?",
+      "topic": "Data plane",
+      "minLevel": "essential",
+      "complexity": 4,
+      "dependsOn": ["availability-objective"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "in-process-sdk",
+          "label": "In-process SDK",
+          "description": "Applications evaluate locally from signed, versioned configuration snapshots."
+        },
+        {
+          "id": "regional-sidecar",
+          "label": "Sidecar or node-local daemon",
+          "description": "A local service centralizes evaluation and snapshot distribution per host or cluster."
+        },
+        {
+          "id": "remote-service",
+          "label": "Remote evaluation API",
+          "description": "Applications call a regional service for each evaluation."
+        }
+      ],
+      "recommendedOptionId": "in-process-sdk",
+      "recommendationRationale": "Local evaluation removes a network hop from hot paths and preserves availability during regional control-plane failures.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "in-process-sdk",
+        "confidence": "high",
+        "validationTrigger": "Revisit if supported runtimes cannot safely implement identical rule semantics."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["latency SLO", "SDK responsibility", "data-plane topology"]
+    },
+    {
+      "id": "consistency-model",
+      "prompt": "What propagation guarantee should operators receive after publishing a flag change?",
+      "topic": "Consistency",
+      "minLevel": "essential",
+      "complexity": 4,
+      "dependsOn": ["evaluation-location"],
+      "stage": "behavior",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "eventual-bounded",
+          "label": "Bounded eventual consistency",
+          "description": "Publish a target propagation SLO and show per-region convergence status."
+        },
+        {
+          "id": "global-linearizable",
+          "label": "Globally ordered activation",
+          "description": "Do not acknowledge publication until all required regions can observe one committed version."
+        },
+        {
+          "id": "tiered",
+          "label": "Tiered consistency",
+          "description": "Use bounded eventual consistency normally and stronger coordination for emergency flags."
+        }
+      ],
+      "recommendedOptionId": "tiered",
+      "recommendationRationale": "Most flags benefit from fast regional propagation, while kill switches justify a narrower, stronger operational path.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "eventual-bounded",
+        "confidence": "medium",
+        "validationTrigger": "Measure real propagation tails across three regions and validate emergency-change requirements with incident responders."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["publication protocol", "operator guarantees", "emergency flag semantics"]
+    },
+    {
+      "id": "targeting-data",
+      "prompt": "How much user or tenant data may enter the evaluation engine?",
+      "topic": "Privacy and targeting",
+      "minLevel": "essential",
+      "complexity": 4,
+      "dependsOn": ["evaluation-location"],
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "typed-context-local",
+          "label": "Typed context evaluated locally",
+          "description": "SDKs evaluate approved attributes in process and do not send raw context to the platform."
+        },
+        {
+          "id": "hashed-identifiers",
+          "label": "Pseudonymous identifiers only",
+          "description": "Allow stable hashed IDs for percentage rollout and cohort membership."
+        },
+        {
+          "id": "central-context",
+          "label": "Centralized context service",
+          "description": "Upload targeting attributes to support server-side evaluation and analysis."
+        }
+      ],
+      "recommendedOptionId": "typed-context-local",
+      "recommendationRationale": "Keeping evaluation context inside the application minimizes privacy exposure and removes a global user-profile dependency.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "typed-context-local",
+        "confidence": "high",
+        "validationTrigger": "Revisit only when a required targeting use case cannot be expressed with locally available approved attributes."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["privacy boundary", "targeting schema", "telemetry redaction"]
+    },
+    {
+      "id": "distribution-topology",
+      "prompt": "How should configuration reach globally distributed SDKs?",
+      "topic": "Distribution",
+      "minLevel": "essential",
+      "complexity": 5,
+      "dependsOn": ["consistency-model"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "regional-stream-plus-poll",
+          "label": "Regional streams with polling fallback",
+          "description": "Regional relays push version notifications; SDKs fetch snapshots and poll when streams fail."
+        },
+        {
+          "id": "cdn-polling",
+          "label": "CDN snapshot polling",
+          "description": "SDKs periodically fetch immutable snapshots from a global CDN."
+        },
+        {
+          "id": "global-stream",
+          "label": "Direct global streaming",
+          "description": "Every SDK maintains a stream to the central control plane."
+        }
+      ],
+      "recommendedOptionId": "regional-stream-plus-poll",
+      "recommendationRationale": "Regional fan-out gives fast propagation without making persistent global connectivity the only recovery path.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "cdn-polling",
+        "confidence": "medium",
+        "validationTrigger": "Load-test connection fan-out and propagation SLO before committing to regional streaming infrastructure."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["regional relay design", "snapshot API", "reconnect behavior"]
+    },
+    {
+      "id": "snapshot-integrity",
+      "prompt": "What must an SDK verify before activating a new configuration snapshot?",
+      "topic": "Distribution",
+      "minLevel": "essential",
+      "complexity": 3,
+      "dependsOn": ["distribution-topology"],
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "multiple-choice",
+      "options": [
+        {
+          "id": "signature",
+          "label": "Control-plane signature",
+          "description": "Verify provenance and reject forged or corrupted snapshots."
+        },
+        {
+          "id": "monotonic-version",
+          "label": "Monotonic version",
+          "description": "Reject accidental rollback unless explicitly authorized."
+        },
+        {
+          "id": "schema-validation",
+          "label": "Schema and semantic validation",
+          "description": "Reject malformed rules, missing defaults, and incompatible evaluator versions."
+        },
+        {
+          "id": "checksum-only",
+          "label": "Transport checksum only",
+          "description": "Rely on TLS and content checksums without a signed artifact."
+        }
+      ],
+      "recommendedOptionIds": ["signature", "monotonic-version", "schema-validation"],
+      "recommendationRationale": "A bad global snapshot can affect every request path, so activation must be atomic and independently verifiable.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionIds": ["signature", "monotonic-version", "schema-validation"],
+        "confidence": "high",
+        "validationTrigger": "Revisit only if a constrained runtime cannot support signature verification within startup and update budgets."
+      },
+      "allowCustom": false,
+      "affectedDecisions": ["snapshot format", "key management", "activation transaction"]
+    },
+    {
+      "id": "control-plane-writes",
+      "prompt": "How should flag writes work across regions?",
+      "topic": "Control plane",
+      "minLevel": "standard",
+      "complexity": 5,
+      "dependsOn": ["consistency-model"],
+      "stage": "architecture",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "single-writer-home",
+          "label": "Single writer with regional failover",
+          "description": "Route writes to one home region and promote a standby through a controlled failover."
+        },
+        {
+          "id": "multi-writer-consensus",
+          "label": "Multi-region consensus",
+          "description": "Accept writes in several regions through one globally ordered log."
+        },
+        {
+          "id": "partitioned-ownership",
+          "label": "Project ownership by region",
+          "description": "Assign each project a write region while replicating reads globally."
+        }
+      ],
+      "recommendedOptionId": "single-writer-home",
+      "recommendationRationale": "Configuration writes are low volume; a single ordered authority simplifies auditability, versioning, and conflict handling without affecting local evaluation.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "single-writer-home",
+        "confidence": "high",
+        "validationTrigger": "Revisit if control-plane write availability cannot meet the agreed operator SLO during a regional outage."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["write routing", "failover runbook", "version authority"]
+    },
+    {
+      "id": "rollout-safety",
+      "prompt": "Which safeguards should be mandatory for high-impact flag changes?",
+      "topic": "Release safety",
+      "minLevel": "standard",
+      "complexity": 4,
+      "dependsOn": ["control-plane-writes"],
+      "stage": "behavior",
+      "impact": "high",
+      "questionType": "multiple-choice",
+      "options": [
+        {
+          "id": "progressive-rollout",
+          "label": "Progressive rollout stages",
+          "description": "Increase exposure through explicit, observable stages."
+        },
+        {
+          "id": "automatic-rollback",
+          "label": "Metric-triggered rollback",
+          "description": "Revert when linked guardrail metrics breach thresholds."
+        },
+        {
+          "id": "approval",
+          "label": "Second-person approval",
+          "description": "Require review for production or emergency-class changes."
+        },
+        {
+          "id": "scheduled-window",
+          "label": "Change windows",
+          "description": "Restrict high-impact changes to staffed operating windows."
+        }
+      ],
+      "recommendedOptionIds": ["progressive-rollout", "automatic-rollback", "approval"],
+      "recommendationRationale": "A global control surface needs both blast-radius reduction and a fast automated escape path; approval protects against operator error.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionIds": ["progressive-rollout", "approval"],
+        "confidence": "medium",
+        "validationTrigger": "Enable automatic rollback after each service defines reliable, low-noise guardrail metrics."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["change workflow", "metric integration", "rollback semantics"]
+    },
+    {
+      "id": "rule-semantics",
+      "prompt": "How should rule semantics evolve across many SDK languages?",
+      "topic": "SDK compatibility",
+      "minLevel": "standard",
+      "complexity": 4,
+      "dependsOn": ["evaluation-location", "targeting-data"],
+      "stage": "implementation",
+      "impact": "high",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "versioned-ir-conformance",
+          "label": "Versioned rule IR with conformance suite",
+          "description": "Publish a language-neutral evaluator contract and certify SDKs against shared vectors."
+        },
+        {
+          "id": "server-compiled",
+          "label": "Server-compiled lookup tables",
+          "description": "Compile rules centrally into simpler runtime-specific artifacts."
+        },
+        {
+          "id": "sdk-independent",
+          "label": "Independent SDK implementations",
+          "description": "Document behavior and let each language evolve separately."
+        }
+      ],
+      "recommendedOptionId": "versioned-ir-conformance",
+      "recommendationRationale": "Local evaluation is only trustworthy when identical context produces identical results across supported runtimes.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "versioned-ir-conformance",
+        "confidence": "high",
+        "validationTrigger": "Validate the IR against the first three SDK languages and measure evaluator complexity before freezing version 1."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["rule contract", "SDK release process", "compatibility policy"]
+    },
+    {
+      "id": "telemetry-boundary",
+      "prompt": "What evaluation telemetry should the platform collect by default?",
+      "topic": "Observability and privacy",
+      "minLevel": "standard",
+      "complexity": 4,
+      "dependsOn": ["targeting-data"],
+      "stage": "risk",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "aggregated-sampled",
+          "label": "Sampled aggregate counters",
+          "description": "Report flag/version/result counts without raw targeting context."
+        },
+        {
+          "id": "per-evaluation",
+          "label": "Per-evaluation events",
+          "description": "Emit detailed decision events for debugging and experimentation."
+        },
+        {
+          "id": "operational-only",
+          "label": "Operational health only",
+          "description": "Collect snapshot age, errors, and SDK health but no evaluation results."
+        }
+      ],
+      "recommendedOptionId": "aggregated-sampled",
+      "recommendationRationale": "Aggregates support rollout health and adoption analysis while limiting cost, cardinality, and privacy exposure.",
+      "confidence": "medium",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "operational-only",
+        "confidence": "medium",
+        "validationTrigger": "Approve aggregate dimensions through privacy review and load-test telemetry volume at projected peak evaluations."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["telemetry schema", "privacy review", "cost envelope"]
+    },
+    {
+      "id": "flag-lifecycle",
+      "prompt": "How strongly should the platform enforce flag cleanup?",
+      "topic": "Operations",
+      "minLevel": "standard",
+      "complexity": 3,
+      "dependsOn": ["rollout-safety"],
+      "stage": "behavior",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "owner-expiry-enforced",
+          "label": "Owner and expiry required",
+          "description": "Every temporary flag has an owner, expiry, reminders, and escalation."
+        },
+        {
+          "id": "advisory",
+          "label": "Advisory lifecycle metadata",
+          "description": "Recommend ownership and expiry without blocking creation."
+        },
+        {
+          "id": "external-governance",
+          "label": "External governance",
+          "description": "Leave cleanup policy to service teams and inventory tooling."
+        }
+      ],
+      "recommendedOptionId": "owner-expiry-enforced",
+      "recommendationRationale": "Stale flags compound evaluator complexity and operational ambiguity; lifecycle metadata is cheapest to capture at creation.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "owner-expiry-enforced",
+        "confidence": "high",
+        "validationTrigger": "Revisit enforcement only if onboarding data shows it blocks legitimate long-lived operational flags."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["flag metadata", "cleanup automation", "ownership model"]
+    },
+    {
+      "id": "disaster-recovery",
+      "prompt": "What recovery path should exist for a bad global configuration or control-plane loss?",
+      "topic": "Failure recovery",
+      "minLevel": "standard",
+      "complexity": 5,
+      "dependsOn": ["snapshot-integrity", "control-plane-writes"],
+      "stage": "risk",
+      "impact": "high",
+      "questionType": "multiple-choice",
+      "options": [
+        {
+          "id": "immutable-history",
+          "label": "Immutable version history",
+          "description": "Retain every published snapshot and its audit record."
+        },
+        {
+          "id": "signed-rollback",
+          "label": "Explicit signed rollback",
+          "description": "Authorize SDKs to activate a prior version through a new monotonic command."
+        },
+        {
+          "id": "offline-emergency-bundle",
+          "label": "Offline emergency bundle",
+          "description": "Distribute a separately controlled minimal kill-switch artifact."
+        },
+        {
+          "id": "sdk-defaults-only",
+          "label": "Application defaults only",
+          "description": "Rely on compiled defaults when no valid platform snapshot is usable."
+        }
+      ],
+      "recommendedOptionIds": ["immutable-history", "signed-rollback", "sdk-defaults-only"],
+      "recommendationRationale": "Recovery needs an auditable rollback that does not weaken monotonic version checks, plus application-owned defaults for total platform loss.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionIds": ["immutable-history", "signed-rollback", "sdk-defaults-only"],
+        "confidence": "high",
+        "validationTrigger": "Run a game day that rolls back a globally published bad rule while the primary control region is unavailable."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["history retention", "rollback protocol", "application fallback contract"]
+    },
+    {
+      "id": "experiment-boundary",
+      "prompt": "Should experimentation analytics be part of the initial platform boundary?",
+      "topic": "Product boundary",
+      "minLevel": "deep",
+      "complexity": 4,
+      "dependsOn": ["telemetry-boundary"],
+      "stage": "goals",
+      "impact": "medium",
+      "questionType": "single-choice",
+      "options": [
+        {
+          "id": "separate-integration",
+          "label": "Separate experimentation integration",
+          "description": "Expose stable assignments and events to a dedicated analytics system."
+        },
+        {
+          "id": "built-in",
+          "label": "Built-in experimentation",
+          "description": "Own assignment, exposure logging, metric computation, and statistical analysis."
+        },
+        {
+          "id": "not-supported",
+          "label": "No experimentation contract",
+          "description": "Limit the platform to operational feature delivery."
+        }
+      ],
+      "recommendedOptionId": "separate-integration",
+      "recommendationRationale": "Flag delivery and statistical analysis have different data, privacy, and correctness concerns; a stable integration avoids coupling their release paths.",
+      "confidence": "high",
+      "defer": {
+        "allowed": true,
+        "temporaryDefaultOptionId": "separate-integration",
+        "confidence": "high",
+        "validationTrigger": "Revisit after an experimentation owner defines exposure and assignment contracts."
+      },
+      "allowCustom": true,
+      "affectedDecisions": ["platform scope", "assignment stability", "event integration"]
+    }
+  ]
+}
