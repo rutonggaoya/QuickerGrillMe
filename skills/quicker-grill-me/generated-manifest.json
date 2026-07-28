@@ -24,7 +24,7 @@
     },
     "scripts/runtime/review.js": {
       "source": "dist/src/review.js",
-      "sha256": "172c63147dd607bde4fa61a908b3cc56dcda9a4672309f474a4ab34f44d2e66a"
+      "sha256": "463dc29f376b5a737e382dfb799c48a2ae4714477006c55bb8d9800fb3339dfd"
     },
     "scripts/runtime/select.js": {
       "source": "dist/src/select.js",

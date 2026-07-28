@@ -47,6 +47,10 @@ test("renders and persists a self-contained review with the full decision record
       "| Name conflict | Never overwrite |",
       "| Parser failure | Use `metadata \\| fallback` |",
       "",
+      "```text",
+      "SDK -> Regional relay",
+      "```",
+      "",
       "<script>alert('no')</script>"
     ].join("\n"),
     { generatedAt: "2026-07-24T01:00:00Z" }
@@ -68,6 +72,11 @@ test("renders and persists a self-contained review with the full decision record
   );
   assert.match(html, /<td>Name conflict<\/td><td>Never overwrite<\/td>/);
   assert.match(html, /<code>metadata \| fallback<\/code>/);
+  assert.match(html, /<pre><code>SDK -&gt; Regional relay<\/code><\/pre>/);
+  assert.match(
+    html,
+    /\.design pre code \{ padding: 0; border-radius: 0; background: transparent; color: inherit; \}/
+  );
   assert.doesNotMatch(html, /<p>\| Scenario/);
   assert.doesNotMatch(html, /<script>/);
   assert.match(html, /&lt;script&gt;alert\(&#39;no&#39;\)&lt;\/script&gt;/);

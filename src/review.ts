@@ -271,6 +271,7 @@ export function renderDesignReview(
       .design h3 { margin-top: 1.3rem; font-size: 1.1rem; }
       .design code { padding: 2px 5px; border-radius: 5px; background: #f0f2f5; }
       .design pre { overflow: auto; padding: 14px; border-radius: 10px; background: #171a1f; color: #f6f7f9; }
+      .design pre code { padding: 0; border-radius: 0; background: transparent; color: inherit; }
       .design blockquote { margin: 16px 0; padding: 8px 14px; border-left: 3px solid #9ba5b4; color: #596473; }
       .table-wrap { overflow-x: auto; margin: 16px 0; }
       table { width: 100%; border-collapse: collapse; font-size: .9rem; }
