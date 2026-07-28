@@ -15,7 +15,7 @@
     "changedFromRecommendations"
   ],
   "properties": {
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "questionnaireId": { "type": "string", "minLength": 1 },
     "questionnaireVersion": { "type": "string", "minLength": 1 },
     "level": { "enum": ["essential", "standard", "deep"] },
@@ -44,7 +44,7 @@
     "answer": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["questionId", "status", "value", "source", "confidence"],
+      "required": ["questionId", "status", "value", "source"],
       "properties": {
         "questionId": { "type": "string", "minLength": 1 },
         "status": { "enum": ["answered", "deferred"] },
@@ -52,7 +52,6 @@
         "source": {
           "enum": ["recommended", "changed", "custom", "deferred"]
         },
-        "confidence": { "enum": ["low", "medium", "high"] },
         "temporaryDefault": { "$ref": "#/$defs/answerValue" },
         "validationTrigger": { "type": "string", "minLength": 1 }
       }

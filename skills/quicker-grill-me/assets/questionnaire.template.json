@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "metadata": {
     "id": "replace-with-design-id",
     "title": "Replace with the design review title",
@@ -32,11 +32,10 @@
       ],
       "recommendedOptionId": "recommended-path",
       "recommendationRationale": "Replace with a context-specific rationale.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "recommended-path",
-        "confidence": "low",
         "validationTrigger": "Replace with an observable event or planned check."
       },
       "allowCustom": true,

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "metadata": {
     "id": "global-feature-flag-platform",
     "title": "Design a global Feature Flag platform",
@@ -38,15 +38,18 @@
       ],
       "recommendedOptionId": "serve-stale",
       "recommendationRationale": "Feature evaluation commonly sits on critical request paths, so a verified stale snapshot is safer than turning a control-plane incident into a global application outage.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "serve-stale",
-        "confidence": "high",
         "validationTrigger": "Revisit if a regulated workload requires proof of immediate revocation for specific flags."
       },
       "allowCustom": true,
-      "affectedDecisions": ["data-plane availability", "staleness budget", "SDK failure behavior"]
+      "affectedDecisions": [
+        "data-plane availability",
+        "staleness budget",
+        "SDK failure behavior"
+      ]
     },
     {
       "id": "evaluation-location",
@@ -54,7 +57,9 @@
       "topic": "Data plane",
       "minLevel": "essential",
       "complexity": 4,
-      "dependsOn": ["availability-objective"],
+      "dependsOn": [
+        "availability-objective"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -77,15 +82,18 @@
       ],
       "recommendedOptionId": "in-process-sdk",
       "recommendationRationale": "Local evaluation removes a network hop from hot paths and preserves availability during regional control-plane failures.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "in-process-sdk",
-        "confidence": "high",
         "validationTrigger": "Revisit if supported runtimes cannot safely implement identical rule semantics."
       },
       "allowCustom": true,
-      "affectedDecisions": ["latency SLO", "SDK responsibility", "data-plane topology"]
+      "affectedDecisions": [
+        "latency SLO",
+        "SDK responsibility",
+        "data-plane topology"
+      ]
     },
     {
       "id": "consistency-model",
@@ -93,7 +101,9 @@
       "topic": "Consistency",
       "minLevel": "essential",
       "complexity": 4,
-      "dependsOn": ["evaluation-location"],
+      "dependsOn": [
+        "evaluation-location"
+      ],
       "stage": "behavior",
       "impact": "high",
       "questionType": "single-choice",
@@ -116,15 +126,18 @@
       ],
       "recommendedOptionId": "tiered",
       "recommendationRationale": "Most flags benefit from fast regional propagation, while kill switches justify a narrower, stronger operational path.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "eventual-bounded",
-        "confidence": "medium",
         "validationTrigger": "Measure real propagation tails across three regions and validate emergency-change requirements with incident responders."
       },
       "allowCustom": true,
-      "affectedDecisions": ["publication protocol", "operator guarantees", "emergency flag semantics"]
+      "affectedDecisions": [
+        "publication protocol",
+        "operator guarantees",
+        "emergency flag semantics"
+      ]
     },
     {
       "id": "targeting-data",
@@ -132,7 +145,9 @@
       "topic": "Privacy and targeting",
       "minLevel": "essential",
       "complexity": 4,
-      "dependsOn": ["evaluation-location"],
+      "dependsOn": [
+        "evaluation-location"
+      ],
       "stage": "risk",
       "impact": "high",
       "questionType": "single-choice",
@@ -155,15 +170,18 @@
       ],
       "recommendedOptionId": "typed-context-local",
       "recommendationRationale": "Keeping evaluation context inside the application minimizes privacy exposure and removes a global user-profile dependency.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "typed-context-local",
-        "confidence": "high",
         "validationTrigger": "Revisit only when a required targeting use case cannot be expressed with locally available approved attributes."
       },
       "allowCustom": true,
-      "affectedDecisions": ["privacy boundary", "targeting schema", "telemetry redaction"]
+      "affectedDecisions": [
+        "privacy boundary",
+        "targeting schema",
+        "telemetry redaction"
+      ]
     },
     {
       "id": "distribution-topology",
@@ -171,7 +189,9 @@
       "topic": "Distribution",
       "minLevel": "essential",
       "complexity": 5,
-      "dependsOn": ["consistency-model"],
+      "dependsOn": [
+        "consistency-model"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -194,15 +214,18 @@
       ],
       "recommendedOptionId": "regional-stream-plus-poll",
       "recommendationRationale": "Regional fan-out gives fast propagation without making persistent global connectivity the only recovery path.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "cdn-polling",
-        "confidence": "medium",
         "validationTrigger": "Load-test connection fan-out and propagation SLO before committing to regional streaming infrastructure."
       },
       "allowCustom": true,
-      "affectedDecisions": ["regional relay design", "snapshot API", "reconnect behavior"]
+      "affectedDecisions": [
+        "regional relay design",
+        "snapshot API",
+        "reconnect behavior"
+      ]
     },
     {
       "id": "snapshot-integrity",
@@ -210,7 +233,9 @@
       "topic": "Distribution",
       "minLevel": "essential",
       "complexity": 3,
-      "dependsOn": ["distribution-topology"],
+      "dependsOn": [
+        "distribution-topology"
+      ],
       "stage": "risk",
       "impact": "high",
       "questionType": "multiple-choice",
@@ -236,17 +261,28 @@
           "description": "Rely on TLS and content checksums without a signed artifact."
         }
       ],
-      "recommendedOptionIds": ["signature", "monotonic-version", "schema-validation"],
+      "recommendedOptionIds": [
+        "signature",
+        "monotonic-version",
+        "schema-validation"
+      ],
       "recommendationRationale": "A bad global snapshot can affect every request path, so activation must be atomic and independently verifiable.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
-        "temporaryDefaultOptionIds": ["signature", "monotonic-version", "schema-validation"],
-        "confidence": "high",
+        "temporaryDefaultOptionIds": [
+          "signature",
+          "monotonic-version",
+          "schema-validation"
+        ],
         "validationTrigger": "Revisit only if a constrained runtime cannot support signature verification within startup and update budgets."
       },
       "allowCustom": false,
-      "affectedDecisions": ["snapshot format", "key management", "activation transaction"]
+      "affectedDecisions": [
+        "snapshot format",
+        "key management",
+        "activation transaction"
+      ]
     },
     {
       "id": "control-plane-writes",
@@ -254,7 +290,9 @@
       "topic": "Control plane",
       "minLevel": "standard",
       "complexity": 5,
-      "dependsOn": ["consistency-model"],
+      "dependsOn": [
+        "consistency-model"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -277,15 +315,18 @@
       ],
       "recommendedOptionId": "single-writer-home",
       "recommendationRationale": "Configuration writes are low volume; a single ordered authority simplifies auditability, versioning, and conflict handling without affecting local evaluation.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "single-writer-home",
-        "confidence": "high",
         "validationTrigger": "Revisit if control-plane write availability cannot meet the agreed operator SLO during a regional outage."
       },
       "allowCustom": true,
-      "affectedDecisions": ["write routing", "failover runbook", "version authority"]
+      "affectedDecisions": [
+        "write routing",
+        "failover runbook",
+        "version authority"
+      ]
     },
     {
       "id": "rollout-safety",
@@ -293,7 +334,9 @@
       "topic": "Release safety",
       "minLevel": "standard",
       "complexity": 4,
-      "dependsOn": ["control-plane-writes"],
+      "dependsOn": [
+        "control-plane-writes"
+      ],
       "stage": "behavior",
       "impact": "high",
       "questionType": "multiple-choice",
@@ -319,17 +362,27 @@
           "description": "Restrict high-impact changes to staffed operating windows."
         }
       ],
-      "recommendedOptionIds": ["progressive-rollout", "automatic-rollback", "approval"],
+      "recommendedOptionIds": [
+        "progressive-rollout",
+        "automatic-rollback",
+        "approval"
+      ],
       "recommendationRationale": "A global control surface needs both blast-radius reduction and a fast automated escape path; approval protects against operator error.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
-        "temporaryDefaultOptionIds": ["progressive-rollout", "approval"],
-        "confidence": "medium",
+        "temporaryDefaultOptionIds": [
+          "progressive-rollout",
+          "approval"
+        ],
         "validationTrigger": "Enable automatic rollback after each service defines reliable, low-noise guardrail metrics."
       },
       "allowCustom": true,
-      "affectedDecisions": ["change workflow", "metric integration", "rollback semantics"]
+      "affectedDecisions": [
+        "change workflow",
+        "metric integration",
+        "rollback semantics"
+      ]
     },
     {
       "id": "rule-semantics",
@@ -337,7 +390,10 @@
       "topic": "SDK compatibility",
       "minLevel": "standard",
       "complexity": 4,
-      "dependsOn": ["evaluation-location", "targeting-data"],
+      "dependsOn": [
+        "evaluation-location",
+        "targeting-data"
+      ],
       "stage": "implementation",
       "impact": "high",
       "questionType": "single-choice",
@@ -360,15 +416,18 @@
       ],
       "recommendedOptionId": "versioned-ir-conformance",
       "recommendationRationale": "Local evaluation is only trustworthy when identical context produces identical results across supported runtimes.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "versioned-ir-conformance",
-        "confidence": "high",
         "validationTrigger": "Validate the IR against the first three SDK languages and measure evaluator complexity before freezing version 1."
       },
       "allowCustom": true,
-      "affectedDecisions": ["rule contract", "SDK release process", "compatibility policy"]
+      "affectedDecisions": [
+        "rule contract",
+        "SDK release process",
+        "compatibility policy"
+      ]
     },
     {
       "id": "telemetry-boundary",
@@ -376,7 +435,9 @@
       "topic": "Observability and privacy",
       "minLevel": "standard",
       "complexity": 4,
-      "dependsOn": ["targeting-data"],
+      "dependsOn": [
+        "targeting-data"
+      ],
       "stage": "risk",
       "impact": "medium",
       "questionType": "single-choice",
@@ -399,15 +460,18 @@
       ],
       "recommendedOptionId": "aggregated-sampled",
       "recommendationRationale": "Aggregates support rollout health and adoption analysis while limiting cost, cardinality, and privacy exposure.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "operational-only",
-        "confidence": "medium",
         "validationTrigger": "Approve aggregate dimensions through privacy review and load-test telemetry volume at projected peak evaluations."
       },
       "allowCustom": true,
-      "affectedDecisions": ["telemetry schema", "privacy review", "cost envelope"]
+      "affectedDecisions": [
+        "telemetry schema",
+        "privacy review",
+        "cost envelope"
+      ]
     },
     {
       "id": "flag-lifecycle",
@@ -415,7 +479,9 @@
       "topic": "Operations",
       "minLevel": "standard",
       "complexity": 3,
-      "dependsOn": ["rollout-safety"],
+      "dependsOn": [
+        "rollout-safety"
+      ],
       "stage": "behavior",
       "impact": "medium",
       "questionType": "single-choice",
@@ -438,15 +504,18 @@
       ],
       "recommendedOptionId": "owner-expiry-enforced",
       "recommendationRationale": "Stale flags compound evaluator complexity and operational ambiguity; lifecycle metadata is cheapest to capture at creation.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "owner-expiry-enforced",
-        "confidence": "high",
         "validationTrigger": "Revisit enforcement only if onboarding data shows it blocks legitimate long-lived operational flags."
       },
       "allowCustom": true,
-      "affectedDecisions": ["flag metadata", "cleanup automation", "ownership model"]
+      "affectedDecisions": [
+        "flag metadata",
+        "cleanup automation",
+        "ownership model"
+      ]
     },
     {
       "id": "disaster-recovery",
@@ -454,7 +523,10 @@
       "topic": "Failure recovery",
       "minLevel": "standard",
       "complexity": 5,
-      "dependsOn": ["snapshot-integrity", "control-plane-writes"],
+      "dependsOn": [
+        "snapshot-integrity",
+        "control-plane-writes"
+      ],
       "stage": "risk",
       "impact": "high",
       "questionType": "multiple-choice",
@@ -480,17 +552,28 @@
           "description": "Rely on compiled defaults when no valid platform snapshot is usable."
         }
       ],
-      "recommendedOptionIds": ["immutable-history", "signed-rollback", "sdk-defaults-only"],
+      "recommendedOptionIds": [
+        "immutable-history",
+        "signed-rollback",
+        "sdk-defaults-only"
+      ],
       "recommendationRationale": "Recovery needs an auditable rollback that does not weaken monotonic version checks, plus application-owned defaults for total platform loss.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
-        "temporaryDefaultOptionIds": ["immutable-history", "signed-rollback", "sdk-defaults-only"],
-        "confidence": "high",
+        "temporaryDefaultOptionIds": [
+          "immutable-history",
+          "signed-rollback",
+          "sdk-defaults-only"
+        ],
         "validationTrigger": "Run a game day that rolls back a globally published bad rule while the primary control region is unavailable."
       },
       "allowCustom": true,
-      "affectedDecisions": ["history retention", "rollback protocol", "application fallback contract"]
+      "affectedDecisions": [
+        "history retention",
+        "rollback protocol",
+        "application fallback contract"
+      ]
     },
     {
       "id": "experiment-boundary",
@@ -498,7 +581,9 @@
       "topic": "Product boundary",
       "minLevel": "deep",
       "complexity": 4,
-      "dependsOn": ["telemetry-boundary"],
+      "dependsOn": [
+        "telemetry-boundary"
+      ],
       "stage": "goals",
       "impact": "medium",
       "questionType": "single-choice",
@@ -521,15 +606,18 @@
       ],
       "recommendedOptionId": "separate-integration",
       "recommendationRationale": "Flag delivery and statistical analysis have different data, privacy, and correctness concerns; a stable integration avoids coupling their release paths.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "separate-integration",
-        "confidence": "high",
         "validationTrigger": "Revisit after an experimentation owner defines exposure and assignment contracts."
       },
       "allowCustom": true,
-      "affectedDecisions": ["platform scope", "assignment stability", "event integration"]
+      "affectedDecisions": [
+        "platform scope",
+        "assignment stability",
+        "event integration"
+      ]
     }
   ]
 }

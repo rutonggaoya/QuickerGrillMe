@@ -24,11 +24,11 @@
     },
     "scripts/runtime/review.js": {
       "source": "dist/src/review.js",
-      "sha256": "463dc29f376b5a737e382dfb799c48a2ae4714477006c55bb8d9800fb3339dfd"
+      "sha256": "8ec3a93800c5778ded89d6626f921406e6f2cf29554df197a7c5515f067fdd99"
     },
     "scripts/runtime/select.js": {
       "source": "dist/src/select.js",
-      "sha256": "e84f9f9a9e029f685b6d701b9dcce64254cbedb2cee800b093add9ea9745dae0"
+      "sha256": "1351e81e3e2c27e92463d1f473ae2af06ed8efef00ff6803a73329de962172a8"
     },
     "scripts/runtime/server.js": {
       "source": "dist/src/server.js",
@@ -40,15 +40,15 @@
     },
     "scripts/runtime/validate.js": {
       "source": "dist/src/validate.js",
-      "sha256": "3060e2a9a069577bdc87b5548188011a5f5975929447b49039a49844644b39c3"
+      "sha256": "0e80d763e112cb537d6188713aafe565e565ef54d059625f17496081c07696e1"
     },
     "public/app.js": {
       "source": "public/app.js",
-      "sha256": "c2cda26d358b976f2580211054245dc89d5eaf1243df6a245f2e77ec9d45225b"
+      "sha256": "9bd064f8841326d1f685203f3e41086ce75a7293f39d86606a7c616fe90a88ae"
     },
     "public/app.css": {
       "source": "public/app.css",
-      "sha256": "b6c22496192f7bd5eb6c69f1ad259135bf0d409f32a50f1e392c0ca71dda0894"
+      "sha256": "f07c47541268183ca31b60c3bc95230c446b004aca7c76c298efd5d2d9d4f55d"
     },
     "public/index.html": {
       "source": "public/index.html",
@@ -56,15 +56,15 @@
     },
     "references/questionnaire.schema.json": {
       "source": "schema/questionnaire.schema.json",
-      "sha256": "e140bdc7a888b447955a46b4f44bb70734d79c9e809592121877544427dae2da"
+      "sha256": "c20c8d972326844360337fc2c7d0dddb7fa3e95f3a5931ae844ea34ff3a11be0"
     },
     "references/answers.schema.json": {
       "source": "schema/answers.schema.json",
-      "sha256": "36ddc100c055a731d243ac0d0e5aa47702041823617dd7f0efcee79d963e7ad9"
+      "sha256": "0fc5f96f8e0df7a7a8e289b675d7ad5f32eb89eefe51cfd0ea640ed3848e93d5"
     },
     "assets/questionnaire.example.json": {
       "source": "examples/questionnaire.json",
-      "sha256": "5f9369751836b4248e5ef2948f5811b55ed4c1709ba79fb3742086bf6503cbc7"
+      "sha256": "42147a086d6ce015e2600b4a583d1f52153a952c004dae51592adfffe129fff1"
     }
   }
 }

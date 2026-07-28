@@ -30,6 +30,7 @@
     "check:skill": "npm run build && node tools/sync-skill.mjs --check",
     "prepack": "npm run build",
     "test": "npm run build && node tools/sync-skill.mjs --check && node --test \"dist/test/*.test.js\"",
+    "test:e2e": "npm run build && playwright test",
     "validate:example": "npm run build && node dist/src/cli.js validate examples/questionnaire.json",
     "start": "npm run build && node dist/src/cli.js serve examples/questionnaire.json"
   },
@@ -37,7 +38,9 @@
     "node": ">=20"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@fluentui/react-components": "^9.74.4",
+    "@playwright/test": "1.57.0",
     "@types/node": "^24.0.15",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

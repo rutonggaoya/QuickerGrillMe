@@ -8,7 +8,7 @@ import type { AnswerSubmission } from "../src/types.js";
 
 function submission(questionnaireVersion: string): AnswerSubmission {
   return {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     questionnaireId: "concurrency-test",
     questionnaireVersion,
     level: "essential",

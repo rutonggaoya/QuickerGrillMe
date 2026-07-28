@@ -65,7 +65,7 @@ Supporting JSON artifacts are included in the same folder for inspection and rep
 
 ### Questionnaire
 
-The questionnaire presents only material decisions, with the Agent recommendation preselected and its rationale visible.
+The questionnaire presents only material decisions, with the Agent recommendation preselected and its rationale and confidence visible.
 
 ![Global Feature Flag questionnaire with recommended options selected](examples/global-feature-flags/questionnaire-preview.png)
 
@@ -112,9 +112,10 @@ npm start
 npm run validate:example
 npm run build:skill
 npm test
+npm run test:e2e
 ```
 
-`npm run build:skill` synchronizes the committed distribution under [`skills/quicker-grill-me/`](skills/quicker-grill-me/). `npm test` also verifies that the generated distribution is current and can run without repository dependencies.
+`npm run build:skill` synchronizes the committed distribution under [`skills/quicker-grill-me/`](skills/quicker-grill-me/). `npm test` also verifies that the generated distribution is current and can run without repository dependencies. Run `npx playwright install chromium` once before `npm run test:e2e`; the browser suite covers draft recovery, review navigation, recoverable request failures, and WCAG accessibility checks.
 
 ## Feedback and contributions
 

@@ -13,7 +13,7 @@ The project is independently designed. It takes brief inspiration from the idea 
 ## Product principles
 
 1. **Counterfactual value over coverage.** A question earns space only when at least two plausible answers would produce meaningfully different behavior, architecture, cost, risk, or scope.
-2. **Recommendations are useful work.** Every question has a preselected Agent recommendation, rationale, and confidence. A user can submit without editing.
+2. **Recommendations are useful work.** Every question has a preselected Agent recommendation, rationale, and explicit recommendation confidence. A user can submit without editing.
 3. **Uncertainty is explicit.** “Defer / unsure” records a temporary default, confidence, and concrete validation trigger. It is not an empty answer.
 4. **Short by construction.** Depth caps and stop rules prevent endless questioning. A second round is exceptional, bounded, and risk-driven.
 5. **Consequences stay visible.** The final design highlights only defaults that materially affect behavior, cost, or risk. A complete ledger remains available in an appendix.
@@ -108,16 +108,15 @@ The v1 grouping algorithm greedily fills to weight 6, then rebalances a light fi
 
 ## Recommendations, custom answers, and defer
 
-Each question defines options, a recommended option (or options), recommendation rationale, confidence, and affected decisions. V1 supports single-choice and multiple-choice questions. A custom answer is allowed only when `allowCustom` is true.
+Each question defines options, a recommended option (or options), recommendation rationale, `recommendationConfidence`, and affected decisions. V1 supports single-choice and multiple-choice questions. A custom answer is allowed only when `allowCustom` is true.
 
 Deferring requires:
 
 - `allowed: true`;
 - an explicit temporary option default;
-- confidence in that temporary default;
 - a validation trigger phrased as an observable event or planned check.
 
-The answer record distinguishes `recommended`, `changed`, `custom`, and `deferred` sources. This makes the review compact and lets the Agent focus final-design reasoning on meaningful deltas.
+The answer record distinguishes `recommended`, `changed`, `custom`, and `deferred` sources. Confidence belongs only to the Agent recommendation; users choose an answer without rating their own certainty.
 
 ## Round two
 
@@ -125,11 +124,9 @@ Round two is generated directly when round-one answers reveal at least one of:
 
 1. two answers that cannot both be satisfied;
 2. an answer that invalidates a key premise used to construct the questionnaire;
-3. an unresolved high-risk unknown whose plausible outcomes require materially different designs;
-4. a low-confidence selected answer or temporary default for a high-impact decision;
-5. interacting medium-confidence, high-impact decisions that prevent a reliable final design.
+3. an unresolved high-risk unknown whose plausible outcomes require materially different designs.
 
-A changed recommendation alone is not a trigger. Confidence is a trigger only when a follow-up can resolve missing intent, evidence, or a concrete tradeoff. Round two contains 3–5 questions maximum and is the final round. The Agent should prefer a temporary default plus validation plan when another question would not resolve the uncertainty.
+A changed recommendation or low recommendation confidence alone is not a trigger. Round two contains 3–5 questions maximum and is the final round. The Agent should prefer a temporary default plus validation plan when another question would not resolve the uncertainty.
 
 ## Stop conditions
 
@@ -152,7 +149,7 @@ After reading `answers.json`, the Agent produces a complete design document with
 3. failure handling, security, operations, and validation strategy;
 4. a decision summary showing chosen options and material consequences;
 5. a main-body **Defaults and assumptions** section containing only defaults that materially affect behavior, cost, or risk;
-6. **Deferred validation items**, each with temporary default, confidence, owner if known, and trigger;
+6. **Deferred validation items**, each with temporary default, owner if known, and trigger;
 7. a **Default ledger appendix** containing all defaults, including reversible low-impact choices.
 
 The final document must reconcile answers rather than copy questionnaire text. If round two is required, final generation waits until it is complete.
@@ -174,6 +171,8 @@ Runtime validation additionally checks invariants JSON Schema cannot convenientl
 - unique option IDs within a question;
 - recommendation and defer-default options exist;
 - all dependency and visibility references exist;
+- visibility values name options on the referenced question, and `includes` targets only multiple-choice questions;
+- no question depends on a prerequisite introduced at a deeper level;
 - no self-reference or dependency cycle;
 - answer values match known options unless custom input is allowed;
 - all visible questions are represented at submission;
@@ -192,7 +191,7 @@ An adapter:
 4. returns a valid answer submission;
 5. clearly reports persistence or completion.
 
-Adapters may choose different page budgets and interaction surfaces. They must not raise depth caps, omit explicit defer metadata, reorder dependents before prerequisites, or silently repair invalid input.
+Adapters may choose different page budgets and interaction surfaces. They must not raise depth caps, omit explicit defer metadata, reorder dependents before prerequisites, silently trim cap overflow, or silently repair invalid input.
 
 The browser adapter uses a short-lived loopback HTTP server with a React and Fluent UI frontend. esbuild compiles the frontend into fixed minified assets during development and release; the installable skill ships only that dependency-free output and does not run a package manager or frontend build. A terminal or chat adapter can implement the same contract later.
 

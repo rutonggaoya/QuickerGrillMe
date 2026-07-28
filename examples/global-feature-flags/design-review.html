@@ -37,11 +37,15 @@
       .decision { padding: 14px; border: 1px solid #e0e4ea; border-radius: 10px; background: #fbfcfd; }
       .decision-heading { display: flex; gap: 12px; align-items: start; justify-content: space-between; }
       .status.deferred { background: #fff0d8; color: #875b12; }
-      .answer { margin: 10px 0; font-weight: 750; color: #263f8f; }
+      .answer { margin: 10px 0 4px; font-weight: 750; color: #263f8f; }
+      .option-context { margin: 0 0 10px; color: #687384; font-size: .82rem; }
       dl { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; color: #687384; font-size: .8rem; }
       dl div { display: flex; gap: 4px; }
       dt { font-weight: 700; }
       dd { margin: 0; text-transform: capitalize; }
+      .delta { margin-top: 12px; padding: 10px 12px; border-left: 3px solid #4b5fc0; border-radius: 6px; background: #f0f3ff; color: #33408d; font-size: .82rem; }
+      .delta p { margin: 4px 0; }
+      .delta span { text-transform: capitalize; }
       .affected, .validation { margin: 10px 0 0; color: #5e6875; font-size: .84rem; }
       .validation { padding: 8px 10px; border-radius: 7px; background: #fff7e9; color: #774d08; }
       footer { padding: 18px 4px 0; color: #6c7684; font-size: .8rem; text-align: center; }
@@ -70,13 +74,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Availability first with bounded staleness</p>
+    <p class="option-context">Continue evaluating from the last verified snapshot and expose its age.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> data-plane availability, staleness budget, SDK failure behavior</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -84,13 +89,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">In-process SDK</p>
+    <p class="option-context">Applications evaluate locally from signed, versioned configuration snapshots.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> latency SLO, SDK responsibility, data-plane topology</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -98,13 +104,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Tiered consistency</p>
+    <p class="option-context">Use bounded eventual consistency normally and stronger coordination for emergency flags.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>medium</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> publication protocol, operator guarantees, emergency flag semantics</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -112,13 +119,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Regional streams with polling fallback</p>
+    <p class="option-context">Regional relays push version notifications; SDKs fetch snapshots and poll when streams fail.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> regional relay design, snapshot API, reconnect behavior</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -126,13 +134,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Single writer with regional failover</p>
+    <p class="option-context">Route writes to one home region and promote a standby through a controlled failover.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> write routing, failover runbook, version authority</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -140,13 +149,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Progressive rollout stages, Metric-triggered rollback, Second-person approval</p>
+    <p class="option-context">Increase exposure through explicit, observable stages. Revert when linked guardrail metrics breach thresholds. Require review for production or emergency-class changes.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>medium</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> change workflow, metric integration, rollback semantics</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -154,13 +164,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Owner and expiry required</p>
+    <p class="option-context">Every temporary flag has an owner, expiry, reminders, and escalation.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>medium</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> flag metadata, cleanup automation, ownership model</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -168,13 +179,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Typed context evaluated locally</p>
+    <p class="option-context">SDKs evaluate approved attributes in process and do not send raw context to the platform.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> privacy boundary, targeting schema, telemetry redaction</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -182,13 +194,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Control-plane signature, Monotonic version, Schema and semantic validation</p>
+    <p class="option-context">Verify provenance and reject forged or corrupted snapshots. Reject accidental rollback unless explicitly authorized. Reject malformed rules, missing defaults, and incompatible evaluator versions.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> snapshot format, key management, activation transaction</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -196,13 +209,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Sampled aggregate counters</p>
+    <p class="option-context">Report flag/version/result counts without raw targeting context.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>medium</dd></div>
       <div><dt>Impact</dt><dd>medium</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> telemetry schema, privacy review, cost envelope</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -210,13 +224,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Separate experimentation integration</p>
+    <p class="option-context">Expose stable assignments and events to a dedicated analytics system.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>medium</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> platform scope, assignment stability, event integration</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -224,13 +239,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Immutable version history, Explicit signed rollback, Application defaults only</p>
+    <p class="option-context">Retain every published snapshot and its audit record. Authorize SDKs to activate a prior version through a new monotonic command. Rely on compiled defaults when no valid platform snapshot is usable.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> history retention, rollback protocol, application fallback contract</p>
-    
+
   </article>
 <article class="decision">
     <div class="decision-heading">
@@ -238,13 +254,14 @@
       <span class="status answered">Decided</span>
     </div>
     <p class="answer">Versioned rule IR with conformance suite</p>
+    <p class="option-context">Publish a language-neutral evaluator contract and certify SDKs against shared vectors.</p>
     <dl>
       <div><dt>Source</dt><dd>recommended</dd></div>
-      <div><dt>Confidence</dt><dd>high</dd></div>
       <div><dt>Impact</dt><dd>high</dd></div>
     </dl>
+
     <p class="affected"><strong>Affects:</strong> rule contract, SDK release process, compatibility policy</p>
-    
+
   </article></div>
       </section>
       <section class="design">
@@ -342,7 +359,7 @@ Regional snapshot store &lt;-----------------+
 <h2>Appendix A. Default ledger</h2>
 <div class="table-wrap"><table><thead><tr><th>Default</th><th>Rationale</th></tr></thead><tbody><tr><td>In-process evaluation</td><td>Removes network latency and availability coupling</td></tr><tr><td>Last verified snapshot on failure</td><td>Preserves request-path availability</td></tr><tr><td>Atomic snapshot activation</td><td>Prevents mixed configuration within one process</td></tr><tr><td>Single ordered writer</td><td>Simplifies versioning, audit, and failover</td></tr><tr><td>Regional notifications plus polling</td><td>Combines fast updates with robust recovery</td></tr><tr><td>Signed snapshots</td><td>Verifies provenance beyond transport security</td></tr><tr><td>Explicit signed rollback as a new version</td><td>Preserves monotonic safety and auditability</td></tr><tr><td>Typed local context</td><td>Limits privacy exposure and central dependencies</td></tr><tr><td>Sampled aggregate telemetry</td><td>Controls privacy, cardinality, and cost</td></tr><tr><td>Required owner and expiry</td><td>Prevents indefinite flag accumulation</td></tr><tr><td>Separate experimentation system</td><td>Keeps statistical analysis outside the delivery boundary</td></tr></tbody></table></div>
       </section>
-      <footer>Generated by QuickerGrillMe at 2026-07-28T03:13:12.637Z. Read-only review artifact; send feedback through your team's existing channel.</footer>
+      <footer>Generated by QuickerGrillMe at 2026-07-28T05:30:50.947Z. Read-only review artifact; send feedback through your team's existing channel.</footer>
     </main>
   </body>
 </html>

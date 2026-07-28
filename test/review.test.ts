@@ -15,7 +15,7 @@ test("renders and persists a self-contained review with the full decision record
   const questionnaire = makeQuestionnaire([question]);
   questionnaire.metadata.title = "Design <review>";
   const submission: AnswerSubmission = {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     questionnaireId: questionnaire.metadata.id,
     questionnaireVersion: questionnaire.metadata.version,
     level: "standard",
@@ -27,7 +27,6 @@ test("renders and persists a self-contained review with the full decision record
         status: "deferred",
         value: "no",
         source: "deferred",
-        confidence: "medium",
         temporaryDefault: "no",
         validationTrigger: "Before launch"
       }
@@ -64,6 +63,12 @@ test("renders and persists a self-contained review with the full decision record
     "key design decisions should appear before the design plan"
   );
   assert.match(html, /How should &lt;delivery&gt; work\?/);
+  assert.match(html, /Agent recommendation:<\/strong> Yes/);
+  assert.match(html, /Choose no/);
+  assert.match(html, /Choose yes/);
+  assert.doesNotMatch(html, /Answer confidence/);
+  assert.match(html, /Rationale:<\/strong> This is the safe default/);
+  assert.match(html, /Affects:<\/strong> Deployment model/);
   assert.match(html, /Validate when:<\/strong> Before launch/);
   assert.match(html, /organization or invited reviewers only/);
   assert.match(

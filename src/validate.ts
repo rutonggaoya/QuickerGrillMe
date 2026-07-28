@@ -278,7 +278,6 @@ function parseDefer(
       "allowed",
       "temporaryDefaultOptionId",
       "temporaryDefaultOptionIds",
-      "confidence",
       "validationTrigger"
     ],
     path,
@@ -300,7 +299,6 @@ function parseDefer(
     allowed: booleanAt(record, "allowed", path, issues),
     ...(temporaryDefaultOptionId === undefined ? {} : { temporaryDefaultOptionId }),
     ...(temporaryDefaultOptionIds === undefined ? {} : { temporaryDefaultOptionIds }),
-    confidence: enumAt(record, "confidence", CONFIDENCE_LEVELS, path, issues),
     validationTrigger: stringAt(record, "validationTrigger", path, issues)
   };
 }
@@ -324,7 +322,7 @@ function parseQuestion(value: unknown, path: string, issues: string[]): Question
       "recommendedOptionId",
       "recommendedOptionIds",
       "recommendationRationale",
-      "confidence",
+      "recommendationConfidence",
       "defer",
       "allowCustom",
       "affectedDecisions"
@@ -395,7 +393,13 @@ function parseQuestion(value: unknown, path: string, issues: string[]): Question
       path,
       issues
     ),
-    confidence: enumAt(record, "confidence", CONFIDENCE_LEVELS, path, issues),
+    recommendationConfidence: enumAt(
+      record,
+      "recommendationConfidence",
+      CONFIDENCE_LEVELS,
+      path,
+      issues
+    ),
     defer: parseDefer(record["defer"], `${path}.defer`, issues),
     allowCustom: booleanAt(record, "allowCustom", path, issues),
     affectedDecisions
@@ -430,6 +434,8 @@ function parseMetadata(
 
 function validateQuestionRelationships(questionnaire: Questionnaire, issues: string[]): void {
   const questionIds = new Set<string>();
+  const questionsById = new Map(questionnaire.questions.map((question) => [question.id, question]));
+  const levelRank = new Map(DEPTH_LEVELS.map((level, index) => [level, index]));
   for (const question of questionnaire.questions) {
     if (questionIds.has(question.id)) {
       issues.push(`questions contains duplicate id "${question.id}"`);
@@ -488,10 +494,13 @@ function validateQuestionRelationships(questionnaire: Questionnaire, issues: str
   }
 
   for (const question of questionnaire.questions) {
+    const visibilityConditions = [
+      ...(question.visibleWhen?.all ?? []),
+      ...(question.visibleWhen?.any ?? [])
+    ];
     const references = [
       ...question.dependsOn,
-      ...(question.visibleWhen?.all ?? []).map((condition) => condition.questionId),
-      ...(question.visibleWhen?.any ?? []).map((condition) => condition.questionId)
+      ...visibilityConditions.map((condition) => condition.questionId)
     ];
     for (const reference of references) {
       if (!questionIds.has(reference)) {
@@ -499,6 +508,34 @@ function validateQuestionRelationships(questionnaire: Questionnaire, issues: str
       }
       if (reference === question.id) {
         issues.push(`question "${question.id}" cannot depend on itself`);
+      }
+      const dependency = questionsById.get(reference);
+      if (
+        dependency !== undefined &&
+        (levelRank.get(dependency.minLevel) ?? 0) > (levelRank.get(question.minLevel) ?? 0)
+      ) {
+        issues.push(
+          `question "${question.id}" cannot depend on deeper question "${reference}"`
+        );
+      }
+    }
+    for (const condition of visibilityConditions) {
+      const referencedQuestion = questionsById.get(condition.questionId);
+      if (referencedQuestion === undefined) {
+        continue;
+      }
+      if (!referencedQuestion.options.some((option) => option.id === condition.value)) {
+        issues.push(
+          `question "${question.id}" visibility condition uses unknown option "${condition.value}" from "${condition.questionId}"`
+        );
+      }
+      if (
+        condition.operator === "includes" &&
+        referencedQuestion.questionType !== "multiple-choice"
+      ) {
+        issues.push(
+          `question "${question.id}" can use includes only with a multiple-choice question`
+        );
       }
     }
   }
@@ -517,8 +554,8 @@ export function validateQuestionnaire(value: unknown): Questionnaire {
   const root = recordAt(value, "$", issues);
   rejectUnknownKeys(root, ["schemaVersion", "metadata", "questions"], "$", issues);
   const schemaVersion = stringAt(root, "schemaVersion", "$", issues);
-  if (schemaVersion !== "1.0") {
-    issues.push("$.schemaVersion must equal \"1.0\"");
+  if (schemaVersion !== "1.1") {
+    issues.push("$.schemaVersion must equal \"1.1\"");
   }
   const questionsValue = root["questions"];
   const questions = Array.isArray(questionsValue)
@@ -531,7 +568,7 @@ export function validateQuestionnaire(value: unknown): Questionnaire {
   }
 
   const questionnaire: Questionnaire = {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     metadata: parseMetadata(root["metadata"], "$.metadata", issues),
     questions
   };
@@ -574,7 +611,6 @@ function parseAnswer(
       "status",
       "value",
       "source",
-      "confidence",
       "temporaryDefault",
       "validationTrigger"
     ],
@@ -604,7 +640,6 @@ function parseAnswer(
     status,
     value: parseAnswerValue(record["value"], `${path}.value`, issues),
     source,
-    confidence: enumAt(record, "confidence", CONFIDENCE_LEVELS, path, issues),
     ...(temporaryDefault === undefined ? {} : { temporaryDefault }),
     ...(validationTrigger === undefined ? {} : { validationTrigger })
   };
@@ -682,12 +717,9 @@ function validateAnswerAgainstQuestion(
           `deferred answer "${question.id}" must use its configured temporary default`
         );
       }
-      if (
-        answer.confidence !== question.defer.confidence ||
-        answer.validationTrigger !== question.defer.validationTrigger
-      ) {
+      if (answer.validationTrigger !== question.defer.validationTrigger) {
         issues.push(
-          `deferred answer "${question.id}" must preserve configured confidence and validation trigger`
+          `deferred answer "${question.id}" must preserve its configured validation trigger`
         );
       }
     }
@@ -725,8 +757,8 @@ export function validateAnswerSubmission(
     issues
   );
   const schemaVersion = stringAt(root, "schemaVersion", "$", issues);
-  if (schemaVersion !== "1.0") {
-    issues.push("$.schemaVersion must equal \"1.0\"");
+  if (schemaVersion !== "1.1") {
+    issues.push("$.schemaVersion must equal \"1.1\"");
   }
   const level = enumAt(root, "level", DEPTH_LEVELS, "$", issues) satisfies DepthLevel;
   const roundValue = root["round"];
@@ -812,7 +844,7 @@ export function validateAnswerSubmission(
   }
 
   return {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     questionnaireId,
     questionnaireVersion,
     level,

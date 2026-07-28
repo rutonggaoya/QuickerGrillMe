@@ -17,11 +17,10 @@ export function makeQuestion(id: string, overrides: Partial<Question> = {}): Que
     ],
     recommendedOptionId: "yes",
     recommendationRationale: "This is the safe default.",
-    confidence: "high",
+    recommendationConfidence: "high",
     defer: {
       allowed: true,
       temporaryDefaultOptionId: "yes",
-      confidence: "medium",
       validationTrigger: "Validate before release."
     },
     allowCustom: true,
@@ -32,7 +31,7 @@ export function makeQuestion(id: string, overrides: Partial<Question> = {}): Que
 
 export function makeQuestionnaire(questions: Question[]): Questionnaire {
   return {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     metadata: {
       id: "test-questionnaire",
       title: "Test questionnaire",

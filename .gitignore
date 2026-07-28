@@ -1,5 +1,7 @@
 node_modules/
 dist/
+playwright-report/
+test-results/
 answers.json
 !examples/global-feature-flags/answers.json
 *.tmp

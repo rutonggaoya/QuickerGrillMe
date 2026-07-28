@@ -94,8 +94,7 @@ describe("local browser API", () => {
           questionId: question.id,
           status: "answered",
           value: question.recommendedOptionId ?? question.recommendedOptionIds ?? [],
-          source: "recommended",
-          confidence: question.confidence
+          source: "recommended"
         }
       ])
     );
@@ -108,7 +107,6 @@ describe("local browser API", () => {
       status: "deferred",
       value: "internal-design",
       source: "deferred",
-      confidence: sensitiveQuestion.defer.confidence,
       temporaryDefault: "internal-design",
       validationTrigger: sensitiveQuestion.defer.validationTrigger
     };
@@ -120,7 +118,7 @@ describe("local browser API", () => {
         "x-quickergrillme-token": submissionToken
       },
       body: JSON.stringify({
-        schemaVersion: "1.0",
+        schemaVersion: "1.1",
         questionnaireId: questionnaire.metadata.id,
         questionnaireVersion: questionnaire.metadata.version,
         level: "standard",
@@ -167,7 +165,7 @@ describe("local browser API", () => {
         "x-quickergrillme-token": submissionToken
       },
       body: JSON.stringify({
-        schemaVersion: "1.0",
+        schemaVersion: "1.1",
         questionnaireId: questionnaire.metadata.id,
         questionnaireVersion: questionnaire.metadata.version,
         level: "essential",

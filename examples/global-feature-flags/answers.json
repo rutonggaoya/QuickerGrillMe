@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "questionnaireId": "global-feature-flag-platform",
   "questionnaireVersion": "1.0.0",
   "level": "deep",
@@ -10,36 +10,31 @@
       "questionId": "availability-objective",
       "status": "answered",
       "value": "serve-stale",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "evaluation-location": {
       "questionId": "evaluation-location",
       "status": "answered",
       "value": "in-process-sdk",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "consistency-model": {
       "questionId": "consistency-model",
       "status": "answered",
       "value": "tiered",
-      "source": "recommended",
-      "confidence": "medium"
+      "source": "recommended"
     },
     "distribution-topology": {
       "questionId": "distribution-topology",
       "status": "answered",
       "value": "regional-stream-plus-poll",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "control-plane-writes": {
       "questionId": "control-plane-writes",
       "status": "answered",
       "value": "single-writer-home",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "rollout-safety": {
       "questionId": "rollout-safety",
@@ -49,22 +44,19 @@
         "automatic-rollback",
         "approval"
       ],
-      "source": "recommended",
-      "confidence": "medium"
+      "source": "recommended"
     },
     "flag-lifecycle": {
       "questionId": "flag-lifecycle",
       "status": "answered",
       "value": "owner-expiry-enforced",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "targeting-data": {
       "questionId": "targeting-data",
       "status": "answered",
       "value": "typed-context-local",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "snapshot-integrity": {
       "questionId": "snapshot-integrity",
@@ -74,22 +66,19 @@
         "monotonic-version",
         "schema-validation"
       ],
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "telemetry-boundary": {
       "questionId": "telemetry-boundary",
       "status": "answered",
       "value": "aggregated-sampled",
-      "source": "recommended",
-      "confidence": "medium"
+      "source": "recommended"
     },
     "experiment-boundary": {
       "questionId": "experiment-boundary",
       "status": "answered",
       "value": "separate-integration",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "disaster-recovery": {
       "questionId": "disaster-recovery",
@@ -99,15 +88,13 @@
         "signed-rollback",
         "sdk-defaults-only"
       ],
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     },
     "rule-semantics": {
       "questionId": "rule-semantics",
       "status": "answered",
       "value": "versioned-ir-conformance",
-      "source": "recommended",
-      "confidence": "high"
+      "source": "recommended"
     }
   },
   "changedFromRecommendations": []

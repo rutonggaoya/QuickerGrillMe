@@ -16,6 +16,11 @@ import {
 import type { OptionOnSelectData, SelectionEvents } from "@fluentui/react-components";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import {
+  loadQuestionnaireDraft,
+  removeQuestionnaireDraft,
+  saveQuestionnaireDraft
+} from "../src/draft.js";
 import type {
   AnswerRecord,
   AnswerValue,
@@ -41,6 +46,17 @@ interface SubmitResponse {
 }
 
 type Answers = Record<string, AnswerRecord>;
+type OperationKind = "draft" | "preview" | "submit";
+
+interface OperationError {
+  kind: OperationKind;
+  message: string;
+}
+
+interface DraftNotice {
+  intent: "info" | "warning";
+  message: string;
+}
 
 async function requestJson<T>(
   url: string,
@@ -98,8 +114,7 @@ function makeRecommendedAnswer(question: Question): AnswerRecord {
     questionId: question.id,
     status: "answered",
     value: recommendedValue(question),
-    source: "recommended",
-    confidence: question.confidence
+    source: "recommended"
   };
 }
 
@@ -125,12 +140,32 @@ function optionLabel(question: Question, value: AnswerValue): string {
     .join(", ");
 }
 
+function optionContext(question: Question, value: AnswerValue): string {
+  const values = Array.isArray(value) ? value : [value];
+  const descriptions = values.flatMap((item) => {
+    const description = question.options.find((option) => option.id === item)?.description;
+    return description === undefined ? [] : [description];
+  });
+  return descriptions.length === 0 ? "Custom response" : descriptions.join(" ");
+}
+
 function topicAnchor(topic: string, index: number): string {
   const slug = topic
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   return `topic-${slug || "section"}-${index + 1}`;
+}
+
+function questionAnchor(questionId: string): string {
+  return `question-${questionId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}`;
+}
+
+function afterNextPaint(callback: () => void): void {
+  window.requestAnimationFrame(() => window.requestAnimationFrame(callback));
 }
 
 function CustomAnswer({
@@ -190,12 +225,12 @@ function QuestionCard({
   const recommended = recommendedValue(question);
 
   const choose = (value: AnswerValue): void => {
+    const source = valuesEqual(value, recommended) ? "recommended" : "changed";
     onAnswer({
       questionId: question.id,
       status: "answered",
       value,
-      source: valuesEqual(value, recommended) ? "recommended" : "changed",
-      confidence: question.confidence
+      source
     });
   };
 
@@ -215,13 +250,17 @@ function QuestionCard({
               .map((item) => item.trim())
               .filter(Boolean)
           : value,
-      source: "custom",
-      confidence: "low"
+      source: "custom"
     });
   };
 
   return (
-    <Card className="question-card" appearance="outline">
+    <Card
+      className="question-card"
+      appearance="outline"
+      id={questionAnchor(question.id)}
+      tabIndex={-1}
+    >
       <fieldset>
         <legend>{question.prompt}</legend>
         {question.questionType === "single-choice" ? (
@@ -269,8 +308,7 @@ function QuestionCard({
                               value: values,
                               source: valuesEqual(values, recommended)
                                 ? "recommended"
-                                : "changed",
-                              confidence: question.confidence
+                                : "changed"
                             }
                           : makeRecommendedAnswer(question)
                       );
@@ -298,7 +336,8 @@ function QuestionCard({
         <details className="recommendation">
           <summary>Why this is recommended</summary>
           <p>
-            {question.recommendationRationale} Confidence: {question.confidence}.
+            {question.recommendationRationale} Recommendation confidence:{" "}
+            {question.recommendationConfidence}.
           </p>
         </details>
 
@@ -313,7 +352,6 @@ function QuestionCard({
                   status: "deferred",
                   value,
                   source: "deferred",
-                  confidence: question.defer.confidence,
                   temporaryDefault: value,
                   validationTrigger: question.defer.validationTrigger
                 });
@@ -330,7 +368,7 @@ function QuestionCard({
         {current.status === "deferred" && current.temporaryDefault !== undefined && (
           <p className="defer-note">
             Temporary default: {optionLabel(question, current.temporaryDefault)}. Validate
-            when: {current.validationTrigger}
+            when: {current.validationTrigger}.
           </p>
         )}
       </fieldset>
@@ -346,10 +384,17 @@ function QuestionnaireApp(): React.JSX.Element {
   const [reviewing, setReviewing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<SubmitResponse>();
-  const [error, setError] = useState<string>();
+  const [successWarning, setSuccessWarning] = useState<string>();
+  const [fatalError, setFatalError] = useState<string>();
+  const [operationError, setOperationError] = useState<OperationError>();
+  const [draftNotice, setDraftNotice] = useState<DraftNotice>();
+  const [collapsedTopics, setCollapsedTopics] = useState<Set<string>>(
+    () => new Set()
+  );
   const answersRef = useRef<Answers>({});
   const previewRequestId = useRef(0);
   const submittedRef = useRef(false);
+  const reviewSourceScroll = useRef(0);
 
   const refreshPreview = useCallback(
     async (
@@ -358,21 +403,32 @@ function QuestionnaireApp(): React.JSX.Element {
       activeAnswers: Answers
     ): Promise<void> => {
       const requestId = ++previewRequestId.current;
-      const preview = await requestJson<PreviewResponse>(
-        "/api/preview",
-        activeQuestionnaire.submissionToken,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            level: activeLevel,
-            answers: answerValueMap(activeAnswers)
-          })
+      let preview: PreviewResponse;
+      try {
+        preview = await requestJson<PreviewResponse>(
+          "/api/preview",
+          activeQuestionnaire.submissionToken,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              level: activeLevel,
+              answers: answerValueMap(activeAnswers)
+            })
+          }
+        );
+      } catch (caught) {
+        if (requestId !== previewRequestId.current) {
+          return;
         }
-      );
+        throw caught;
+      }
       if (requestId !== previewRequestId.current) {
         return;
       }
       setPages(preview.pages);
+      setOperationError((current) =>
+        current?.kind === "preview" ? undefined : current
+      );
     },
     []
   );
@@ -381,17 +437,115 @@ function QuestionnaireApp(): React.JSX.Element {
     void (async () => {
       try {
         const loaded = await requestJson<TransportQuestionnaire>("/api/questionnaire");
-        const initialAnswers = initializeAnswers(loaded);
+        const draftResult = loadQuestionnaireDraft(window.localStorage, loaded);
+        const initialAnswers = {
+          ...initializeAnswers(loaded),
+          ...(draftResult.draft?.answers ?? {})
+        };
+        const initialLevel =
+          draftResult.draft?.level ?? loaded.metadata.recommendedLevel;
         answersRef.current = initialAnswers;
         setQuestionnaire(loaded);
-        setLevel(loaded.metadata.recommendedLevel);
+        setLevel(initialLevel);
         setAnswers(initialAnswers);
-        await refreshPreview(loaded, loaded.metadata.recommendedLevel, initialAnswers);
+        setCollapsedTopics(
+          new Set(draftResult.draft?.collapsedTopics ?? [])
+        );
+        if (draftResult.warning !== undefined) {
+          setDraftNotice({ intent: "warning", message: draftResult.warning });
+        } else if (draftResult.draft !== undefined) {
+          setDraftNotice({
+            intent: "info",
+            message: `Restored your draft from ${new Date(
+              draftResult.draft.savedAt
+            ).toLocaleString()}.`
+          });
+        }
+        try {
+          await refreshPreview(loaded, initialLevel, initialAnswers);
+          if (draftResult.draft !== undefined) {
+            afterNextPaint(() =>
+              window.scrollTo({ top: draftResult.draft?.scrollY ?? 0 })
+            );
+          }
+        } catch (caught) {
+          setOperationError({
+            kind: "preview",
+            message: `Could not refresh the visible questions: ${
+              caught instanceof Error ? caught.message : String(caught)
+            }`
+          });
+        }
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : String(caught));
+        setFatalError(caught instanceof Error ? caught.message : String(caught));
       }
     })();
   }, [refreshPreview]);
+
+  useEffect(() => {
+    if (questionnaire === undefined || success !== undefined) {
+      return;
+    }
+    try {
+      saveQuestionnaireDraft(window.localStorage, questionnaire, level, answers, {
+        collapsedTopics: [...collapsedTopics],
+        scrollY: window.scrollY
+      });
+      setOperationError((current) =>
+        current?.kind === "draft" ? undefined : current
+      );
+    } catch (caught) {
+      setOperationError({
+        kind: "draft",
+        message: `Could not save the browser draft: ${
+          caught instanceof Error ? caught.message : String(caught)
+        }`
+      });
+    }
+  }, [answers, collapsedTopics, level, questionnaire, success]);
+
+  useEffect(() => {
+    if (questionnaire === undefined || success !== undefined) {
+      return;
+    }
+    let timer: number | undefined;
+    const persistScrollPosition = (): void => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+      timer = window.setTimeout(() => {
+        try {
+          saveQuestionnaireDraft(
+            window.localStorage,
+            questionnaire,
+            level,
+            answersRef.current,
+            {
+              collapsedTopics: [...collapsedTopics],
+              scrollY: window.scrollY
+            }
+          );
+          setOperationError((current) =>
+            current?.kind === "draft" ? undefined : current
+          );
+        } catch (caught) {
+          setOperationError({
+            kind: "draft",
+            message: `Could not save the browser draft: ${
+              caught instanceof Error ? caught.message : String(caught)
+            }`
+          });
+        }
+      }, 250);
+    };
+    window.addEventListener("scroll", persistScrollPosition, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", persistScrollPosition);
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [collapsedTopics, level, questionnaire, success]);
 
   useEffect(() => {
     if (questionnaire === undefined) {
@@ -432,9 +586,15 @@ function QuestionnaireApp(): React.JSX.Element {
     return [...groups.entries()].map(([topic, questions], index) => ({
       topic,
       questions,
-      anchor: topicAnchor(topic, index)
+      anchor: topicAnchor(topic, index),
+      changedCount: questions.filter(
+        (question) => answers[question.id]?.source !== "recommended"
+      ).length,
+      deferredCount: questions.filter(
+        (question) => answers[question.id]?.status === "deferred"
+      ).length
     }));
-  }, [pages]);
+  }, [answers, pages]);
   const changedQuestions = useMemo(
     () =>
       questionnaire?.questions.filter(
@@ -446,6 +606,45 @@ function QuestionnaireApp(): React.JSX.Element {
   );
   const visibleQuestionCount = visibleIds.size;
 
+  const setTopicCollapsed = (topic: string, collapsed: boolean): void => {
+    setCollapsedTopics((current) => {
+      const next = new Set(current);
+      if (collapsed) {
+        next.add(topic);
+      } else {
+        next.delete(topic);
+      }
+      return next;
+    });
+  };
+
+  const navigateToTopic = (topic: string, anchor: string): void => {
+    setTopicCollapsed(topic, false);
+    afterNextPaint(() =>
+      document.getElementById(anchor)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      })
+    );
+  };
+
+  const navigateToQuestion = (question: Question): void => {
+    setReviewing(false);
+    setTopicCollapsed(question.topic, false);
+    afterNextPaint(() => {
+      const element = document.getElementById(questionAnchor(question.id));
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      element?.focus({ preventScroll: true });
+    });
+  };
+
+  const returnToQuestions = (): void => {
+    setReviewing(false);
+    afterNextPaint(() =>
+      window.scrollTo({ top: reviewSourceScroll.current, behavior: "smooth" })
+    );
+  };
+
   const commitAnswer = (question: Question, answer: AnswerRecord): void => {
     if (questionnaire === undefined) {
       return;
@@ -453,9 +652,14 @@ function QuestionnaireApp(): React.JSX.Element {
     const nextAnswers = { ...answersRef.current, [question.id]: answer };
     answersRef.current = nextAnswers;
     setAnswers(nextAnswers);
-    void refreshPreview(questionnaire, level, nextAnswers).catch((caught) =>
-      setError(caught instanceof Error ? caught.message : String(caught))
-    );
+    void refreshPreview(questionnaire, level, nextAnswers).catch((caught) => {
+      setOperationError({
+        kind: "preview",
+        message: `Could not refresh the visible questions: ${
+          caught instanceof Error ? caught.message : String(caught)
+        }`
+      });
+    });
   };
 
   const changeLevel = (_: SelectionEvents, data: OptionOnSelectData): void => {
@@ -468,8 +672,15 @@ function QuestionnaireApp(): React.JSX.Element {
     }
     setLevel(nextLevel);
     setReviewing(false);
-    void refreshPreview(questionnaire, nextLevel, answersRef.current).catch((caught) =>
-      setError(caught instanceof Error ? caught.message : String(caught))
+    void refreshPreview(questionnaire, nextLevel, answersRef.current).catch(
+      (caught) => {
+        setOperationError({
+          kind: "preview",
+          message: `Could not refresh the visible questions: ${
+            caught instanceof Error ? caught.message : String(caught)
+          }`
+        });
+      }
     );
   };
 
@@ -478,6 +689,9 @@ function QuestionnaireApp(): React.JSX.Element {
       return;
     }
     setSubmitting(true);
+    setOperationError((current) =>
+      current?.kind === "submit" ? undefined : current
+    );
     try {
       const visibleAnswers = Object.fromEntries(
         Object.entries(answersRef.current).filter(([questionId]) =>
@@ -490,7 +704,7 @@ function QuestionnaireApp(): React.JSX.Element {
         {
           method: "POST",
           body: JSON.stringify({
-            schemaVersion: "1.0",
+            schemaVersion: "1.1",
             questionnaireId: questionnaire.metadata.id,
             questionnaireVersion: questionnaire.metadata.version,
             level,
@@ -502,19 +716,82 @@ function QuestionnaireApp(): React.JSX.Element {
         }
       );
       submittedRef.current = true;
+      try {
+        removeQuestionnaireDraft(window.localStorage, questionnaire);
+      } catch (caught) {
+        setSuccessWarning(
+          `Answers were saved, but the browser draft could not be removed: ${
+            caught instanceof Error ? caught.message : String(caught)
+          }`
+        );
+      }
       setSuccess(result);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
+      setOperationError({
+        kind: "submit",
+        message: `Could not submit the answers: ${
+          caught instanceof Error ? caught.message : String(caught)
+        }`
+      });
+    } finally {
       setSubmitting(false);
     }
   };
 
-  if (error !== undefined) {
+  const retryOperation = (): void => {
+    if (questionnaire === undefined || operationError === undefined) {
+      return;
+    }
+    if (operationError.kind === "submit") {
+      void submitAnswers();
+      return;
+    }
+    if (operationError.kind === "preview") {
+      void refreshPreview(questionnaire, level, answersRef.current).catch(
+        (caught) => {
+          setOperationError({
+            kind: "preview",
+            message: `Could not refresh the visible questions: ${
+              caught instanceof Error ? caught.message : String(caught)
+            }`
+          });
+        }
+      );
+      return;
+    }
+    try {
+      saveQuestionnaireDraft(
+        window.localStorage,
+        questionnaire,
+        level,
+        answersRef.current,
+        {
+          collapsedTopics: [...collapsedTopics],
+          scrollY: window.scrollY
+        }
+      );
+      setOperationError(undefined);
+    } catch (caught) {
+      setOperationError({
+        kind: "draft",
+        message: `Could not save the browser draft: ${
+          caught instanceof Error ? caught.message : String(caught)
+        }`
+      });
+    }
+  };
+
+  if (fatalError !== undefined) {
     return (
       <main className="centered-state">
         <MessageBar intent="error">
           <MessageBarBody>
-            <strong>Questionnaire error:</strong> {error}
+            <strong>Questionnaire could not start:</strong> {fatalError}
+            <span className="message-actions">
+              <Button size="small" onClick={() => window.location.reload()}>
+                Reload
+              </Button>
+            </span>
           </MessageBarBody>
         </MessageBar>
       </main>
@@ -528,6 +805,9 @@ function QuestionnaireApp(): React.JSX.Element {
           <MessageBarBody>
             <strong>Answers saved.</strong> {success.message}
             <span className="output-path">Local file: {success.outputPath}</span>
+            {successWarning !== undefined && (
+              <span className="output-path">{successWarning}</span>
+            )}
           </MessageBarBody>
         </MessageBar>
       </main>
@@ -580,6 +860,43 @@ function QuestionnaireApp(): React.JSX.Element {
         </div>
       </header>
 
+      {draftNotice !== undefined && (
+        <MessageBar className="app-message" intent={draftNotice.intent}>
+          <MessageBarBody>
+            {draftNotice.message}
+            <span className="message-actions">
+              <Button
+                appearance="subtle"
+                size="small"
+                onClick={() => setDraftNotice(undefined)}
+              >
+                Dismiss
+              </Button>
+            </span>
+          </MessageBarBody>
+        </MessageBar>
+      )}
+
+      {operationError !== undefined && (
+        <MessageBar className="app-message" intent="error">
+          <MessageBarBody>
+            {operationError.message}
+            <span className="message-actions">
+              <Button size="small" onClick={retryOperation}>
+                Retry
+              </Button>
+              <Button
+                appearance="subtle"
+                size="small"
+                onClick={() => setOperationError(undefined)}
+              >
+                Dismiss
+              </Button>
+            </span>
+          </MessageBarBody>
+        </MessageBar>
+      )}
+
       {reviewing ? (
         <section className="review">
           <p className="eyebrow">Submission review</p>
@@ -596,11 +913,26 @@ function QuestionnaireApp(): React.JSX.Element {
             ) : (
               changedQuestions.map((question) => (
                 <Card className="review-item" appearance="outline" key={question.id}>
-                  <h3>{question.prompt}</h3>
+                  <div className="review-item-header">
+                    <h3>{question.prompt}</h3>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      onClick={() => navigateToQuestion(question)}
+                    >
+                      Edit answer
+                    </Button>
+                  </div>
                   <div className="review-comparison">
                     <div>
                       <strong>Recommended</strong>
                       {optionLabel(question, recommendedValue(question))}
+                      <span className="review-meta">
+                        Recommendation confidence: {question.recommendationConfidence}
+                      </span>
+                      <p className="review-context">
+                        {optionContext(question, recommendedValue(question))}
+                      </p>
                     </div>
                     <div>
                       <strong>
@@ -609,14 +941,31 @@ function QuestionnaireApp(): React.JSX.Element {
                           : "Your answer"}
                       </strong>
                       {optionLabel(question, answers[question.id]?.value ?? "")}
+                      <p className="review-context">
+                        {optionContext(question, answers[question.id]?.value ?? "")}
+                      </p>
                     </div>
                   </div>
+                  <p className="review-rationale">
+                    <strong>Why the Agent recommended differently:</strong>{" "}
+                    {question.recommendationRationale}
+                  </p>
+                  <p className="review-affected">
+                    <strong>Affected decisions:</strong>{" "}
+                    {question.affectedDecisions.join(", ")}
+                  </p>
+                  {answers[question.id]?.status === "deferred" && (
+                    <p className="review-validation">
+                      <strong>Validate when:</strong>{" "}
+                      {answers[question.id]?.validationTrigger}
+                    </p>
+                  )}
                 </Card>
               ))
             )}
           </div>
           <div className="navigation">
-            <Button appearance="secondary" onClick={() => setReviewing(false)}>
+            <Button appearance="secondary" onClick={returnToQuestions}>
               Back to questions
             </Button>
             <Button
@@ -632,51 +981,136 @@ function QuestionnaireApp(): React.JSX.Element {
         <div className="questionnaire-layout">
           <aside className="topic-sidebar" aria-label="Question topics">
             <nav>
-              <p className="topic-sidebar-title">Topics</p>
+              <div className="topic-sidebar-heading">
+                <p className="topic-sidebar-title">Topics</p>
+                <div className="topic-sidebar-actions">
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    onClick={() => setCollapsedTopics(new Set())}
+                  >
+                    Expand all
+                  </Button>
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    onClick={() =>
+                      setCollapsedTopics(
+                        new Set(topicGroups.map(({ topic }) => topic))
+                      )
+                    }
+                  >
+                    Collapse all
+                  </Button>
+                </div>
+              </div>
               <ol>
-                {topicGroups.map(({ topic, questions, anchor }) => (
+                {topicGroups.map(
+                  ({
+                    topic,
+                    questions,
+                    anchor,
+                    changedCount,
+                    deferredCount
+                  }) => (
                   <li key={anchor}>
-                    <a href={`#${anchor}`}>
+                    <a
+                      href={`#${anchor}`}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigateToTopic(topic, anchor);
+                      }}
+                    >
                       <span>{topic}</span>
-                      <span aria-label={`${questions.length} questions`}>
-                        {questions.length}
+                      <span className="topic-status">
+                        <span
+                          className="topic-count"
+                          aria-label={`${questions.length} questions`}
+                        >
+                          {questions.length}
+                        </span>
+                        {changedCount > 0 && (
+                          <span
+                            className="topic-state changed"
+                            aria-label={`${changedCount} changed answers`}
+                          >
+                            {changedCount} changed
+                          </span>
+                        )}
+                        {deferredCount > 0 && (
+                          <span
+                            className="topic-state deferred"
+                            aria-label={`${deferredCount} deferred answers`}
+                          >
+                            {deferredCount} deferred
+                          </span>
+                        )}
                       </span>
                     </a>
                   </li>
-                ))}
+                  )
+                )}
               </ol>
             </nav>
           </aside>
 
           <section className="all-questions">
-            {topicGroups.map(({ topic, questions, anchor }) => (
+            {topicGroups.map(
+              ({
+                topic,
+                questions,
+                anchor,
+                changedCount,
+                deferredCount
+              }) => {
+              const collapsed = collapsedTopics.has(topic);
+              return (
               <section className="topic-section" id={anchor} key={anchor}>
                 <div className="topic-heading">
-                  <h2>{topic}</h2>
-                  <span>
+                  <h2>
+                    <button
+                      className="topic-toggle"
+                      type="button"
+                      aria-expanded={!collapsed}
+                      aria-controls={`${anchor}-questions`}
+                      onClick={() => setTopicCollapsed(topic, !collapsed)}
+                    >
+                      <span aria-hidden="true">{collapsed ? "▸" : "▾"}</span>
+                      {topic}
+                    </button>
+                  </h2>
+                  <span className="topic-summary">
                     {questions.length} {questions.length === 1 ? "question" : "questions"}
+                    {changedCount > 0 ? ` · ${changedCount} changed` : ""}
+                    {deferredCount > 0 ? ` · ${deferredCount} deferred` : ""}
                   </span>
                 </div>
-                <div className="question-list">
-                  {questions.map((question) => {
-                    const current = answers[question.id];
-                    return current === undefined ? null : (
-                      <QuestionCard
-                        key={question.id}
-                        question={question}
-                        current={current}
-                        onAnswer={(answer) => commitAnswer(question, answer)}
-                      />
-                    );
-                  })}
-                </div>
+                  <div
+                    className="question-list"
+                    hidden={collapsed}
+                    id={`${anchor}-questions`}
+                  >
+                    {questions.map((question) => {
+                      const current = answers[question.id];
+                      return current === undefined ? null : (
+                        <QuestionCard
+                          key={question.id}
+                          question={question}
+                          current={current}
+                          onAnswer={(answer) => commitAnswer(question, answer)}
+                        />
+                      );
+                    })}
+                  </div>
               </section>
-            ))}
+              );
+            })}
             <div className="navigation question-actions">
               <span>Review your changes before submitting.</span>
               <Button
                 appearance="primary"
                 onClick={() => {
+                  reviewSourceScroll.current = window.scrollY;
                   setReviewing(true);
                   window.scrollTo(0, 0);
                 }}

@@ -19,7 +19,7 @@ describe("questionnaire validation", () => {
 
   test("reports invalid references and recommendations clearly", () => {
     const value = {
-      schemaVersion: "1.0",
+      schemaVersion: "1.1",
       metadata: {
         id: "broken",
         title: "Broken",
@@ -44,11 +44,10 @@ describe("questionnaire validation", () => {
           ],
           recommendedOptionId: "missing-option",
           recommendationRationale: "Reason",
-          confidence: "high",
+          recommendationConfidence: "high",
           defer: {
             allowed: true,
             temporaryDefaultOptionId: "also-missing",
-            confidence: "low",
             validationTrigger: "Later"
           },
           allowCustom: false,
@@ -98,6 +97,28 @@ describe("questionnaire validation", () => {
     );
   });
 
+  test("rejects invalid visibility semantics and deeper prerequisites", () => {
+    const questionnaire = makeQuestionnaire([
+      makeQuestion("single"),
+      makeQuestion("deep", { minLevel: "deep" }),
+      makeQuestion("dependent", {
+        dependsOn: ["deep"],
+        visibleWhen: {
+          all: [{ questionId: "single", operator: "includes", value: "missing" }]
+        }
+      })
+    ]);
+
+    assert.throws(
+      () => validateQuestionnaire(questionnaire),
+      (error: unknown) =>
+        error instanceof ValidationError &&
+        error.issues.some((issue) => issue.includes('unknown option "missing"')) &&
+        error.issues.some((issue) => issue.includes("includes only with a multiple-choice")) &&
+        error.issues.some((issue) => issue.includes("cannot depend on deeper question"))
+    );
+  });
+
   test("requires RFC 3339 timestamps in questionnaires and submissions", () => {
     const questionnaire = makeQuestionnaire([makeQuestion("q1")]);
     for (const invalidDate of [
@@ -120,7 +141,7 @@ describe("questionnaire validation", () => {
       () =>
         validateAnswerSubmission(
           {
-            schemaVersion: "1.0",
+            schemaVersion: "1.1",
             questionnaireId: questionnaire.metadata.id,
             questionnaireVersion: questionnaire.metadata.version,
             level: "essential",
@@ -131,8 +152,7 @@ describe("questionnaire validation", () => {
                 questionId: "q1",
                 status: "answered",
                 value: "yes",
-                source: "recommended",
-                confidence: "high"
+                source: "recommended"
               }
             },
             changedFromRecommendations: []
@@ -140,6 +160,37 @@ describe("questionnaire validation", () => {
           questionnaire
         ),
       /RFC 3339/
+    );
+  });
+
+  test("rejects the removed answer confidence property", () => {
+    const questionnaire = makeQuestionnaire([
+      makeQuestion("q1", { recommendationConfidence: "low" })
+    ]);
+    assert.throws(
+      () =>
+        validateAnswerSubmission(
+          {
+            schemaVersion: "1.1",
+            questionnaireId: questionnaire.metadata.id,
+            questionnaireVersion: questionnaire.metadata.version,
+            level: "essential",
+            round: 1,
+            submittedAt: "2026-07-21T09:00:00Z",
+            answers: {
+              q1: {
+                questionId: "q1",
+                status: "answered",
+                value: "no",
+                source: "changed",
+                answerConfidence: "high"
+              }
+            },
+            changedFromRecommendations: ["q1"]
+          },
+          questionnaire
+        ),
+      /answerConfidence is not allowed/
     );
   });
 
@@ -154,7 +205,7 @@ describe("questionnaire validation", () => {
       })
     ]);
     const base = {
-      schemaVersion: "1.0",
+      schemaVersion: "1.1",
       questionnaireId: questionnaire.metadata.id,
       questionnaireVersion: questionnaire.metadata.version,
       level: "essential",
@@ -173,15 +224,13 @@ describe("questionnaire validation", () => {
                 questionId: "gate",
                 status: "answered",
                 value: "no",
-                source: "changed",
-                confidence: "high"
+                source: "changed"
               },
               dependent: {
                 questionId: "dependent",
                 status: "answered",
                 value: "yes",
-                source: "recommended",
-                confidence: "high"
+                source: "recommended"
               }
             }
           },
@@ -200,15 +249,13 @@ describe("questionnaire validation", () => {
                 questionId: "gate",
                 status: "answered",
                 value: "yes",
-                source: "deferred",
-                confidence: "high"
+                source: "deferred"
               },
               dependent: {
                 questionId: "dependent",
                 status: "answered",
                 value: "yes",
-                source: "recommended",
-                confidence: "high"
+                source: "recommended"
               }
             }
           },
@@ -224,7 +271,7 @@ describe("questionnaire validation", () => {
       () =>
         validateAnswerSubmission(
           {
-            schemaVersion: "1.0",
+            schemaVersion: "1.1",
             questionnaireId: prototypeQuestionnaire.metadata.id,
             questionnaireVersion: prototypeQuestionnaire.metadata.version,
             level: "essential",
@@ -243,7 +290,6 @@ describe("questionnaire validation", () => {
         defer: {
           allowed: true,
           temporaryDefaultOptionId: "yes",
-          confidence: "low",
           validationTrigger: "Use the configured trigger."
         }
       })
@@ -252,7 +298,7 @@ describe("questionnaire validation", () => {
       () =>
         validateAnswerSubmission(
           {
-            schemaVersion: "1.0",
+            schemaVersion: "1.1",
             questionnaireId: deferredQuestionnaire.metadata.id,
             questionnaireVersion: deferredQuestionnaire.metadata.version,
             level: "essential",
@@ -264,7 +310,6 @@ describe("questionnaire validation", () => {
                 status: "deferred",
                 value: "yes",
                 source: "deferred",
-                confidence: "high",
                 temporaryDefault: "yes",
                 validationTrigger: "A different trigger."
               }
@@ -273,7 +318,7 @@ describe("questionnaire validation", () => {
           },
           deferredQuestionnaire
         ),
-      /preserve configured confidence/
+      /preserve its configured validation trigger/
     );
   });
 });

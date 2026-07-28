@@ -83,5 +83,11 @@ export function selectQuestions(
     eligible = next;
   }
 
-  return eligible.slice(0, LEVEL_CAPS[level]);
+  const cap = LEVEL_CAPS[level];
+  if (eligible.length > cap) {
+    throw new Error(
+      `Questionnaire exposes ${eligible.length} questions at ${level} depth, exceeding the hard cap of ${cap}. Remove lower-value questions, raise their minLevel, or tighten visibility rules.`
+    );
+  }
+  return eligible;
 }

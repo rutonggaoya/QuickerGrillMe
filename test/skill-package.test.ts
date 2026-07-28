@@ -134,7 +134,6 @@ test("bundled skill runs without project dependencies from a path containing spa
       (page: { questions: unknown[] }) => page.questions
     ) as Array<{
       id: string;
-      confidence: "low" | "medium" | "high";
       recommendedOptionId?: string;
       recommendedOptionIds?: string[];
     }>;
@@ -145,8 +144,7 @@ test("bundled skill runs without project dependencies from a path containing spa
           questionId: question.id,
           status: "answered",
           value: question.recommendedOptionId ?? question.recommendedOptionIds ?? [],
-          source: "recommended",
-          confidence: question.confidence
+          source: "recommended"
         }
       ])
     );
@@ -158,7 +156,7 @@ test("bundled skill runs without project dependencies from a path containing spa
         "x-quickergrillme-token": submissionToken
       },
       body: JSON.stringify({
-        schemaVersion: "1.0",
+        schemaVersion: "1.1",
         questionnaireId: transport.metadata.id,
         questionnaireVersion: transport.metadata.version,
         level: "standard",

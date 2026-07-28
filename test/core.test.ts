@@ -34,7 +34,7 @@ describe("question ordering", () => {
 });
 
 describe("depth and visibility selection", () => {
-  test("enforces each depth cap", () => {
+  test("rejects depth-cap overflow instead of silently trimming questions", () => {
     const questions = Array.from({ length: 30 }, (_, index) =>
       makeQuestion(`q-${index}`, {
         minLevel: index < 8 ? "essential" : index < 18 ? "standard" : "deep"
@@ -42,9 +42,18 @@ describe("depth and visibility selection", () => {
     );
     const questionnaire = makeQuestionnaire(questions);
 
-    assert.equal(selectQuestions(questionnaire, "essential").length, LEVEL_CAPS.essential);
-    assert.equal(selectQuestions(questionnaire, "standard").length, LEVEL_CAPS.standard);
-    assert.equal(selectQuestions(questionnaire, "deep").length, LEVEL_CAPS.deep);
+    assert.throws(
+      () => selectQuestions(questionnaire, "essential"),
+      new RegExp(`exceeding the hard cap of ${LEVEL_CAPS.essential}`)
+    );
+    assert.throws(
+      () => selectQuestions(questionnaire, "standard"),
+      new RegExp(`exceeding the hard cap of ${LEVEL_CAPS.standard}`)
+    );
+    assert.throws(
+      () => selectQuestions(questionnaire, "deep"),
+      new RegExp(`exceeding the hard cap of ${LEVEL_CAPS.deep}`)
+    );
   });
 
   test("recomputes conditional visibility from upstream answers", () => {

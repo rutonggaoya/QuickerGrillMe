@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "metadata", "questions"],
   "properties": {
     "schemaVersion": {
-      "const": "1.0"
+      "const": "1.1"
     },
     "metadata": {
       "type": "object",
@@ -95,7 +95,6 @@
       "additionalProperties": false,
       "required": [
         "allowed",
-        "confidence",
         "validationTrigger"
       ],
       "properties": {
@@ -106,7 +105,6 @@
           "minItems": 1,
           "items": { "$ref": "#/$defs/nonEmptyString" }
         },
-        "confidence": { "$ref": "#/$defs/confidence" },
         "validationTrigger": { "$ref": "#/$defs/nonEmptyString" }
       }
     },
@@ -125,7 +123,7 @@
         "questionType",
         "options",
         "recommendationRationale",
-        "confidence",
+        "recommendationConfidence",
         "defer",
         "allowCustom",
         "affectedDecisions"
@@ -172,7 +170,7 @@
           "items": { "$ref": "#/$defs/nonEmptyString" }
         },
         "recommendationRationale": { "$ref": "#/$defs/nonEmptyString" },
-        "confidence": { "$ref": "#/$defs/confidence" },
+        "recommendationConfidence": { "$ref": "#/$defs/confidence" },
         "defer": { "$ref": "#/$defs/defer" },
         "allowCustom": { "type": "boolean" },
         "affectedDecisions": {

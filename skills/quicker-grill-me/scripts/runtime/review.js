@@ -166,30 +166,54 @@ function renderMarkdown(markdown) {
     flushBlocks();
     return output.join("\n");
 }
-function optionLabels(question, answer) {
-    const values = Array.isArray(answer.value) ? answer.value : [answer.value];
+function optionLabels(question, value) {
+    const values = Array.isArray(value) ? value : [value];
     return values
         .map((value) => question.options.find((option) => option.id === value)?.label ?? value)
         .join(", ");
 }
+function optionDescriptions(question, value) {
+    const values = Array.isArray(value) ? value : [value];
+    const descriptions = values.flatMap((item) => {
+        const description = question.options.find((option) => option.id === item)?.description;
+        return description === undefined ? [] : [description];
+    });
+    return descriptions.length === 0 ? "Custom response" : descriptions.join(" ");
+}
+function recommendedValue(question) {
+    return question.questionType === "single-choice"
+        ? question.recommendedOptionId ?? ""
+        : question.recommendedOptionIds ?? [];
+}
 function renderDecision(question, answer) {
     const status = answer.status === "deferred" ? "Deferred" : "Decided";
     const source = answer.source.replaceAll("-", " ");
+    const recommendation = recommendedValue(question);
+    const hasDelta = answer.source !== "recommended";
+    const delta = hasDelta
+        ? `<div class="delta">
+      <p><strong>Agent recommendation:</strong> ${escapeHtml(optionLabels(question, recommendation))} <span>(${escapeHtml(question.recommendationConfidence)} confidence)</span></p>
+      <p>${escapeHtml(optionDescriptions(question, recommendation))}</p>
+      <p><strong>Rationale:</strong> ${escapeHtml(question.recommendationRationale)}</p>
+    </div>`
+        : "";
+    const validation = answer.status === "deferred"
+        ? `<p class="validation"><strong>Validate when:</strong> ${escapeHtml(answer.validationTrigger ?? question.defer.validationTrigger)}</p>`
+        : "";
     return `<article class="decision">
     <div class="decision-heading">
       <h3>${escapeHtml(question.prompt)}</h3>
       <span class="status ${escapeHtml(answer.status)}">${status}</span>
     </div>
-    <p class="answer">${escapeHtml(optionLabels(question, answer))}</p>
+    <p class="answer">${escapeHtml(optionLabels(question, answer.value))}</p>
+    <p class="option-context">${escapeHtml(optionDescriptions(question, answer.value))}</p>
     <dl>
       <div><dt>Source</dt><dd>${escapeHtml(source)}</dd></div>
-      <div><dt>Confidence</dt><dd>${escapeHtml(answer.confidence)}</dd></div>
       <div><dt>Impact</dt><dd>${escapeHtml(question.impact)}</dd></div>
     </dl>
+${delta}
     <p class="affected"><strong>Affects:</strong> ${escapeHtml(question.affectedDecisions.join(", "))}</p>
-    ${answer.status === "deferred"
-        ? `<p class="validation"><strong>Validate when:</strong> ${escapeHtml(answer.validationTrigger ?? question.defer.validationTrigger)}</p>`
-        : ""}
+${validation}
   </article>`;
 }
 export function renderDesignReview(questionnaire, submission, designMarkdown, options = {}) {
@@ -243,11 +267,15 @@ export function renderDesignReview(questionnaire, submission, designMarkdown, op
       .decision { padding: 14px; border: 1px solid #e0e4ea; border-radius: 10px; background: #fbfcfd; }
       .decision-heading { display: flex; gap: 12px; align-items: start; justify-content: space-between; }
       .status.deferred { background: #fff0d8; color: #875b12; }
-      .answer { margin: 10px 0; font-weight: 750; color: #263f8f; }
+      .answer { margin: 10px 0 4px; font-weight: 750; color: #263f8f; }
+      .option-context { margin: 0 0 10px; color: #687384; font-size: .82rem; }
       dl { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; color: #687384; font-size: .8rem; }
       dl div { display: flex; gap: 4px; }
       dt { font-weight: 700; }
       dd { margin: 0; text-transform: capitalize; }
+      .delta { margin-top: 12px; padding: 10px 12px; border-left: 3px solid #4b5fc0; border-radius: 6px; background: #f0f3ff; color: #33408d; font-size: .82rem; }
+      .delta p { margin: 4px 0; }
+      .delta span { text-transform: capitalize; }
       .affected, .validation { margin: 10px 0 0; color: #5e6875; font-size: .84rem; }
       .validation { padding: 8px 10px; border-radius: 7px; background: #fff7e9; color: #774d08; }
       footer { padding: 18px 4px 0; color: #6c7684; font-size: .8rem; text-align: center; }

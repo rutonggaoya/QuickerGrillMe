@@ -53,7 +53,6 @@ export interface DeferConfiguration {
   allowed: boolean;
   temporaryDefaultOptionId?: string;
   temporaryDefaultOptionIds?: string[];
-  confidence: ConfidenceLevel;
   validationTrigger: string;
 }
 
@@ -72,14 +71,14 @@ export interface Question {
   recommendedOptionId?: string;
   recommendedOptionIds?: string[];
   recommendationRationale: string;
-  confidence: ConfidenceLevel;
+  recommendationConfidence: ConfidenceLevel;
   defer: DeferConfiguration;
   allowCustom: boolean;
   affectedDecisions: string[];
 }
 
 export interface Questionnaire {
-  schemaVersion: "1.0";
+  schemaVersion: "1.1";
   metadata: QuestionnaireMetadata;
   questions: Question[];
 }
@@ -91,13 +90,12 @@ export interface AnswerRecord {
   status: "answered" | "deferred";
   value: AnswerValue;
   source: AnswerSource;
-  confidence: ConfidenceLevel;
   temporaryDefault?: AnswerValue;
   validationTrigger?: string;
 }
 
 export interface AnswerSubmission {
-  schemaVersion: "1.0";
+  schemaVersion: "1.1";
   questionnaireId: string;
   questionnaireVersion: string;
   level: DepthLevel;

@@ -52,8 +52,8 @@ Each question must include:
 - dependency and stage metadata;
 - impact and complexity;
 - realistic options;
-- one preselected recommendation with rationale and confidence;
-- explicit defer behavior with a temporary default, confidence, and observable validation trigger;
+- one preselected recommendation with rationale and `recommendationConfidence`;
+- explicit defer behavior with a temporary default and observable validation trigger;
 - affected design decisions.
 
 Order prerequisites before dependents. Prefer high-impact unresolved decisions. Use conditional visibility when a downstream decision is relevant only for a particular upstream answer.
@@ -82,11 +82,9 @@ Do not create a second round merely because the user changed recommendations. Ge
 
 1. answers that cannot both be satisfied;
 2. an answer that invalidates a key premise used to generate round one; or
-3. an unresolved high-risk unknown whose plausible outcomes require materially different designs;
-4. a high-impact decision whose selected answer or temporary default has low confidence; or
-5. multiple medium-confidence, high-impact decisions whose interaction prevents a reliable final design.
+3. an unresolved high-risk unknown whose plausible outcomes require materially different designs.
 
-Confidence alone is not a reason to ask a redundant follow-up: each round-two question must be capable of increasing confidence by resolving missing intent, evidence, or a concrete tradeoff. When triggered, generate exactly one final questionnaire with 3-5 material follow-ups, use a distinct questionnaire and answer path, and run:
+Changed recommendations and low recommendation confidence alone are not reasons to ask redundant follow-ups. When triggered, generate exactly one final questionnaire with 3-5 material follow-ups, use a distinct questionnaire and answer path, and run:
 
 ```text
 node "<SKILL_DIR>/scripts/runtime/cli.js" serve "<round-2-questionnaire-path>" --output "<round-2-answers-path>" --round 2
@@ -105,7 +103,7 @@ Produce one coherent design containing:
 3. failure handling, security, operations, rollout, and validation strategy as applicable;
 4. a decision summary with selected options and material consequences;
 5. **Defaults and assumptions** containing only defaults that materially affect behavior, cost, or risk;
-6. **Deferred validation items**, each with temporary default, confidence, owner if known, and trigger;
+6. **Deferred validation items**, each with temporary default, owner if known, and trigger;
 7. a **Default ledger appendix** containing every chosen default, including reversible low-impact choices.
 
 Call out unresolved risk plainly. Keep the design proportionate to the proposal; this workflow is not a new framework, approval system, or hosted service.

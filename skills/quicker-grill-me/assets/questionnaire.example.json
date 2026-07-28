@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "metadata": {
     "id": "quickergrillme-v1-design",
     "title": "Shape the first QuickerGrillMe release",
@@ -38,15 +38,18 @@
       ],
       "recommendedOptionId": "fast-decisions",
       "recommendationRationale": "The product is differentiated by disciplined restraint rather than exhaustive questioning.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "fast-decisions",
-        "confidence": "high",
         "validationTrigger": "Revisit if users frequently add major decisions after completing the questionnaire."
       },
       "allowCustom": true,
-      "affectedDecisions": ["question selection policy", "stop rules", "success metrics"]
+      "affectedDecisions": [
+        "question selection policy",
+        "stop rules",
+        "success metrics"
+      ]
     },
     {
       "id": "primary-user",
@@ -54,7 +57,9 @@
       "topic": "Goals and boundaries",
       "minLevel": "essential",
       "complexity": 1,
-      "dependsOn": ["design-goal"],
+      "dependsOn": [
+        "design-goal"
+      ],
       "stage": "goals",
       "impact": "high",
       "questionType": "single-choice",
@@ -77,15 +82,18 @@
       ],
       "recommendedOptionId": "agent-assisted-developer",
       "recommendationRationale": "The browser review and local artifact workflow are designed for a developer-Agent pair.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "agent-assisted-developer",
-        "confidence": "medium",
         "validationTrigger": "Validate with the first five real workflows and note who actually edits answers."
       },
       "allowCustom": true,
-      "affectedDecisions": ["interaction model", "terminology", "collaboration scope"]
+      "affectedDecisions": [
+        "interaction model",
+        "terminology",
+        "collaboration scope"
+      ]
     },
     {
       "id": "scope-boundary",
@@ -93,7 +101,9 @@
       "topic": "Goals and boundaries",
       "minLevel": "essential",
       "complexity": 2,
-      "dependsOn": ["design-goal"],
+      "dependsOn": [
+        "design-goal"
+      ],
       "stage": "goals",
       "impact": "high",
       "questionType": "single-choice",
@@ -116,15 +126,18 @@
       ],
       "recommendedOptionId": "design-generation",
       "recommendationRationale": "Keeping prose generation with the Agent preserves a language-agnostic, lightweight core.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "design-generation",
-        "confidence": "high",
         "validationTrigger": "Revisit when a second Agent integration cannot reliably consume answers.json."
       },
       "allowCustom": true,
-      "affectedDecisions": ["core boundary", "adapter contract", "output workflow"]
+      "affectedDecisions": [
+        "core boundary",
+        "adapter contract",
+        "output workflow"
+      ]
     },
     {
       "id": "success-threshold",
@@ -132,7 +145,9 @@
       "topic": "Goals and boundaries",
       "minLevel": "essential",
       "complexity": 1,
-      "dependsOn": ["design-goal"],
+      "dependsOn": [
+        "design-goal"
+      ],
       "stage": "goals",
       "impact": "medium",
       "questionType": "single-choice",
@@ -155,15 +170,17 @@
       ],
       "recommendedOptionId": "material-changes",
       "recommendationRationale": "The counterfactual test is the product's core quality bar.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "material-changes",
-        "confidence": "medium",
         "validationTrigger": "Compare recommendation changes with resulting design diffs across ten uses."
       },
       "allowCustom": true,
-      "affectedDecisions": ["evaluation plan", "question quality metrics"]
+      "affectedDecisions": [
+        "evaluation plan",
+        "question quality metrics"
+      ]
     },
     {
       "id": "delivery-shape",
@@ -171,7 +188,10 @@
       "topic": "Architecture",
       "minLevel": "essential",
       "complexity": 3,
-      "dependsOn": ["primary-user", "scope-boundary"],
+      "dependsOn": [
+        "primary-user",
+        "scope-boundary"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -194,15 +214,18 @@
       ],
       "recommendedOptionId": "local-browser",
       "recommendationRationale": "A local form reduces conversational overhead without introducing service infrastructure.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "local-browser",
-        "confidence": "high",
         "validationTrigger": "Revisit if target Agent environments cannot open or reach a loopback URL."
       },
       "allowCustom": true,
-      "affectedDecisions": ["adapter implementation", "security boundary", "interaction flow"]
+      "affectedDecisions": [
+        "adapter implementation",
+        "security boundary",
+        "interaction flow"
+      ]
     },
     {
       "id": "persistence-model",
@@ -210,7 +233,9 @@
       "topic": "Architecture",
       "minLevel": "essential",
       "complexity": 2,
-      "dependsOn": ["delivery-shape"],
+      "dependsOn": [
+        "delivery-shape"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -233,15 +258,18 @@
       ],
       "recommendedOptionId": "local-json",
       "recommendationRationale": "JSON is inspectable, language-neutral, versionable, and easy for an Agent to consume.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "local-json",
-        "confidence": "high",
         "validationTrigger": "Revisit if concurrent editing or response history becomes a requirement."
       },
       "allowCustom": true,
-      "affectedDecisions": ["answer contract", "server lifecycle", "integration workflow"]
+      "affectedDecisions": [
+        "answer contract",
+        "server lifecycle",
+        "integration workflow"
+      ]
     },
     {
       "id": "failure-posture",
@@ -249,7 +277,9 @@
       "topic": "Risk and operations",
       "minLevel": "essential",
       "complexity": 2,
-      "dependsOn": ["persistence-model"],
+      "dependsOn": [
+        "persistence-model"
+      ],
       "stage": "risk",
       "impact": "high",
       "questionType": "single-choice",
@@ -272,15 +302,18 @@
       ],
       "recommendedOptionId": "fail-clearly",
       "recommendationRationale": "Silent repairs can conceal design omissions and produce success-shaped but unreliable output.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "fail-clearly",
-        "confidence": "high",
         "validationTrigger": "Review validation failures after several generated questionnaires for overly strict rules."
       },
       "allowCustom": true,
-      "affectedDecisions": ["runtime validation", "error handling", "CLI exit behavior"]
+      "affectedDecisions": [
+        "runtime validation",
+        "error handling",
+        "CLI exit behavior"
+      ]
     },
     {
       "id": "collaboration-model",
@@ -288,7 +321,9 @@
       "topic": "Architecture",
       "minLevel": "standard",
       "complexity": 2,
-      "dependsOn": ["delivery-shape"],
+      "dependsOn": [
+        "delivery-shape"
+      ],
       "visibleWhen": {
         "all": [
           {
@@ -320,15 +355,18 @@
       ],
       "recommendedOptionId": "single-user",
       "recommendationRationale": "Collaboration infrastructure would dominate the first release without proving the core decision model.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "single-user",
-        "confidence": "medium",
         "validationTrigger": "Track requests to co-edit the same questionnaire during early usage."
       },
       "allowCustom": true,
-      "affectedDecisions": ["server state", "concurrency", "authentication"]
+      "affectedDecisions": [
+        "server state",
+        "concurrency",
+        "authentication"
+      ]
     },
     {
       "id": "extension-boundary",
@@ -336,7 +374,10 @@
       "topic": "Architecture",
       "minLevel": "standard",
       "complexity": 3,
-      "dependsOn": ["delivery-shape", "persistence-model"],
+      "dependsOn": [
+        "delivery-shape",
+        "persistence-model"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -359,15 +400,18 @@
       ],
       "recommendedOptionId": "json-contract",
       "recommendationRationale": "Language-neutral artifacts preserve cross-Agent portability while TypeScript remains the reference.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "json-contract",
-        "confidence": "high",
         "validationTrigger": "Implement a second adapter and record any contract gaps."
       },
       "allowCustom": true,
-      "affectedDecisions": ["schema stability", "adapter API", "packaging"]
+      "affectedDecisions": [
+        "schema stability",
+        "adapter API",
+        "packaging"
+      ]
     },
     {
       "id": "answer-update",
@@ -375,7 +419,9 @@
       "topic": "Core behavior",
       "minLevel": "standard",
       "complexity": 3,
-      "dependsOn": ["extension-boundary"],
+      "dependsOn": [
+        "extension-boundary"
+      ],
       "stage": "behavior",
       "impact": "high",
       "questionType": "single-choice",
@@ -398,15 +444,18 @@
       ],
       "recommendedOptionId": "recompute",
       "recommendationRationale": "Dynamic visibility respects the decision DAG while retaining work if a user changes back.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "recompute",
-        "confidence": "medium",
         "validationTrigger": "Observe whether hidden retained answers surprise users during submission review."
       },
       "allowCustom": true,
-      "affectedDecisions": ["visibility engine", "client state", "submission filtering"]
+      "affectedDecisions": [
+        "visibility engine",
+        "client state",
+        "submission filtering"
+      ]
     },
     {
       "id": "round-two-trigger",
@@ -414,7 +463,9 @@
       "topic": "Core behavior",
       "minLevel": "standard",
       "complexity": 3,
-      "dependsOn": ["answer-update"],
+      "dependsOn": [
+        "answer-update"
+      ],
       "stage": "behavior",
       "impact": "high",
       "questionType": "single-choice",
@@ -437,15 +488,18 @@
       ],
       "recommendedOptionId": "risk-only",
       "recommendationRationale": "A changed answer is informative but does not itself justify more questioning.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "risk-only",
-        "confidence": "high",
         "validationTrigger": "Revisit if consequential contradictions regularly escape round one."
       },
       "allowCustom": true,
-      "affectedDecisions": ["state machine", "stop conditions", "Agent handoff"]
+      "affectedDecisions": [
+        "state machine",
+        "stop conditions",
+        "Agent handoff"
+      ]
     },
     {
       "id": "sensitive-data",
@@ -453,7 +507,9 @@
       "topic": "Risk and operations",
       "minLevel": "standard",
       "complexity": 2,
-      "dependsOn": ["persistence-model"],
+      "dependsOn": [
+        "persistence-model"
+      ],
       "stage": "risk",
       "impact": "high",
       "questionType": "single-choice",
@@ -476,15 +532,18 @@
       ],
       "recommendedOptionId": "internal-design",
       "recommendationRationale": "Local-only storage reduces exposure, but generated design inputs commonly contain internal details.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "internal-design",
-        "confidence": "low",
         "validationTrigger": "Classify representative questionnaires under the adopting organization's data policy."
       },
       "allowCustom": true,
-      "affectedDecisions": ["security guidance", "artifact handling", "logging"]
+      "affectedDecisions": [
+        "security guidance",
+        "artifact handling",
+        "logging"
+      ]
     },
     {
       "id": "observability",
@@ -492,7 +551,9 @@
       "topic": "Risk and operations",
       "minLevel": "standard",
       "complexity": 1,
-      "dependsOn": ["failure-posture"],
+      "dependsOn": [
+        "failure-posture"
+      ],
       "stage": "risk",
       "impact": "medium",
       "questionType": "single-choice",
@@ -515,15 +576,18 @@
       ],
       "recommendedOptionId": "console-events",
       "recommendationRationale": "Lifecycle clarity is sufficient for a short-lived local process and avoids data collection.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "console-events",
-        "confidence": "high",
         "validationTrigger": "Add structured logs if failures cannot be diagnosed from CLI output."
       },
       "allowCustom": true,
-      "affectedDecisions": ["CLI output", "privacy", "supportability"]
+      "affectedDecisions": [
+        "CLI output",
+        "privacy",
+        "supportability"
+      ]
     },
     {
       "id": "schema-versioning",
@@ -531,7 +595,9 @@
       "topic": "Architecture",
       "minLevel": "deep",
       "complexity": 3,
-      "dependsOn": ["extension-boundary"],
+      "dependsOn": [
+        "extension-boundary"
+      ],
       "stage": "architecture",
       "impact": "high",
       "questionType": "single-choice",
@@ -554,15 +620,18 @@
       ],
       "recommendedOptionId": "explicit-version",
       "recommendationRationale": "Artifacts can outlive a process, so version intent must travel with the data.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "explicit-version",
-        "confidence": "medium",
         "validationTrigger": "Define migration rules before shipping the first breaking contract change."
       },
       "allowCustom": true,
-      "affectedDecisions": ["compatibility policy", "runtime validation", "adapter upgrades"]
+      "affectedDecisions": [
+        "compatibility policy",
+        "runtime validation",
+        "adapter upgrades"
+      ]
     },
     {
       "id": "concurrent-editing",
@@ -570,7 +639,9 @@
       "topic": "Core behavior",
       "minLevel": "deep",
       "complexity": 4,
-      "dependsOn": ["collaboration-model"],
+      "dependsOn": [
+        "collaboration-model"
+      ],
       "visibleWhen": {
         "all": [
           {
@@ -602,15 +673,18 @@
       ],
       "recommendedOptionId": "optimistic-lock",
       "recommendationRationale": "If collaboration is selected, explicit conflict handling is safer than silent overwrite.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "optimistic-lock",
-        "confidence": "low",
         "validationTrigger": "Prototype with two concurrent editors before committing to a collaboration model."
       },
       "allowCustom": true,
-      "affectedDecisions": ["state synchronization", "API semantics", "conflict UX"]
+      "affectedDecisions": [
+        "state synchronization",
+        "API semantics",
+        "conflict UX"
+      ]
     },
     {
       "id": "conditional-recompute",
@@ -618,7 +692,9 @@
       "topic": "Core behavior",
       "minLevel": "deep",
       "complexity": 3,
-      "dependsOn": ["answer-update"],
+      "dependsOn": [
+        "answer-update"
+      ],
       "stage": "behavior",
       "impact": "medium",
       "questionType": "single-choice",
@@ -641,15 +717,18 @@
       ],
       "recommendedOptionId": "every-change",
       "recommendationRationale": "The local dataset is small, and immediate feedback prevents users answering invalidated questions.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "every-change",
-        "confidence": "high",
         "validationTrigger": "Measure responsiveness on a 25-question deep questionnaire."
       },
       "allowCustom": true,
-      "affectedDecisions": ["preview API", "client rendering", "state retention"]
+      "affectedDecisions": [
+        "preview API",
+        "client rendering",
+        "state retention"
+      ]
     },
     {
       "id": "partial-submission",
@@ -657,7 +736,9 @@
       "topic": "Core behavior",
       "minLevel": "deep",
       "complexity": 2,
-      "dependsOn": ["round-two-trigger"],
+      "dependsOn": [
+        "round-two-trigger"
+      ],
       "stage": "behavior",
       "impact": "high",
       "questionType": "single-choice",
@@ -680,15 +761,18 @@
       ],
       "recommendedOptionId": "explicit-defer-only",
       "recommendationRationale": "Explicit defer distinguishes intentional uncertainty from accidental omission.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "explicit-defer-only",
-        "confidence": "high",
         "validationTrigger": "Review whether mandatory low-impact answers create avoidable friction."
       },
       "allowCustom": true,
-      "affectedDecisions": ["submission validation", "stop conditions", "answer schema"]
+      "affectedDecisions": [
+        "submission validation",
+        "stop conditions",
+        "answer schema"
+      ]
     },
     {
       "id": "accessibility-target",
@@ -696,7 +780,9 @@
       "topic": "Risk and operations",
       "minLevel": "deep",
       "complexity": 2,
-      "dependsOn": ["delivery-shape"],
+      "dependsOn": [
+        "delivery-shape"
+      ],
       "stage": "risk",
       "impact": "medium",
       "questionType": "single-choice",
@@ -719,15 +805,18 @@
       ],
       "recommendedOptionId": "semantic-keyboard",
       "recommendationRationale": "Native controls provide a strong lightweight baseline without turning v1 into a compliance program.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "semantic-keyboard",
-        "confidence": "medium",
         "validationTrigger": "Run keyboard and screen-reader smoke tests before the first tagged release."
       },
       "allowCustom": true,
-      "affectedDecisions": ["HTML structure", "interaction design", "release checklist"]
+      "affectedDecisions": [
+        "HTML structure",
+        "interaction design",
+        "release checklist"
+      ]
     },
     {
       "id": "threat-model",
@@ -735,7 +824,9 @@
       "topic": "Risk and operations",
       "minLevel": "deep",
       "complexity": 4,
-      "dependsOn": ["sensitive-data"],
+      "dependsOn": [
+        "sensitive-data"
+      ],
       "visibleWhen": {
         "all": [
           {
@@ -767,15 +858,18 @@
       ],
       "recommendedOptionId": "network-exposure",
       "recommendationRationale": "Loopback-only binding is the primary architectural security boundary; safe DOM rendering remains mandatory.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "network-exposure",
-        "confidence": "medium",
         "validationTrigger": "Perform a focused threat review before distributing the CLI beyond local development."
       },
       "allowCustom": true,
-      "affectedDecisions": ["server binding", "content security policy", "file handling"]
+      "affectedDecisions": [
+        "server binding",
+        "content security policy",
+        "file handling"
+      ]
     },
     {
       "id": "answer-retention",
@@ -783,7 +877,9 @@
       "topic": "Risk and operations",
       "minLevel": "deep",
       "complexity": 2,
-      "dependsOn": ["sensitive-data"],
+      "dependsOn": [
+        "sensitive-data"
+      ],
       "stage": "risk",
       "impact": "medium",
       "questionType": "single-choice",
@@ -806,15 +902,18 @@
       ],
       "recommendedOptionId": "caller-owned",
       "recommendationRationale": "A CLI should not silently delete or retain artifacts outside the caller's established workflow.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "caller-owned",
-        "confidence": "medium",
         "validationTrigger": "Document adopting-team retention expectations before handling restricted data."
       },
       "allowCustom": true,
-      "affectedDecisions": ["file lifecycle", "privacy documentation", "history features"]
+      "affectedDecisions": [
+        "file lifecycle",
+        "privacy documentation",
+        "history features"
+      ]
     },
     {
       "id": "dependency-failure",
@@ -822,7 +921,10 @@
       "topic": "Risk and operations",
       "minLevel": "deep",
       "complexity": 3,
-      "dependsOn": ["failure-posture", "schema-versioning"],
+      "dependsOn": [
+        "failure-posture",
+        "schema-versioning"
+      ],
       "stage": "risk",
       "impact": "high",
       "questionType": "single-choice",
@@ -845,15 +947,18 @@
       ],
       "recommendedOptionId": "reject-cycle",
       "recommendationRationale": "A cycle represents ambiguous decision prerequisites and should be repaired by the questionnaire producer.",
-      "confidence": "high",
+      "recommendationConfidence": "high",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "reject-cycle",
-        "confidence": "high",
         "validationTrigger": "Review generated cycle errors to improve Agent-side questionnaire construction."
       },
       "allowCustom": true,
-      "affectedDecisions": ["DAG validation", "error messages", "producer guidance"]
+      "affectedDecisions": [
+        "DAG validation",
+        "error messages",
+        "producer guidance"
+      ]
     },
     {
       "id": "packaging",
@@ -861,7 +966,10 @@
       "topic": "Implementation",
       "minLevel": "deep",
       "complexity": 1,
-      "dependsOn": ["schema-versioning", "observability"],
+      "dependsOn": [
+        "schema-versioning",
+        "observability"
+      ],
       "stage": "implementation",
       "impact": "low",
       "questionType": "single-choice",
@@ -884,15 +992,18 @@
       ],
       "recommendedOptionId": "node-package",
       "recommendationRationale": "The target environments already run Agents with Node, and package distribution adds little machinery.",
-      "confidence": "medium",
+      "recommendationConfidence": "medium",
       "defer": {
         "allowed": true,
         "temporaryDefaultOptionId": "node-package",
-        "confidence": "medium",
         "validationTrigger": "Validate installation friction in one environment that does not have a TypeScript toolchain."
       },
       "allowCustom": true,
-      "affectedDecisions": ["package metadata", "build output", "installation docs"]
+      "affectedDecisions": [
+        "package metadata",
+        "build output",
+        "installation docs"
+      ]
     }
   ]
 }
