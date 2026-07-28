@@ -65,9 +65,9 @@ Supporting JSON artifacts are included in the same folder for inspection and rep
 
 ### Questionnaire
 
-The questionnaire presents only material decisions, with the Agent recommendation preselected and its rationale and confidence visible.
+The questionnaire opens with material decisions and Agent recommendations preselected, ready for the user to review or change.
 
-![Global Feature Flag questionnaire with recommended options selected](examples/global-feature-flags/questionnaire-preview.png)
+![Global Feature Flag questionnaire waiting for user answers](examples/global-feature-flags/questionnaire-preview.png)
 
 ### Design review
 
