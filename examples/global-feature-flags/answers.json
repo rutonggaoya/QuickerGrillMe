@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "1.0",
+  "questionnaireId": "global-feature-flag-platform",
+  "questionnaireVersion": "1.0.0",
+  "level": "deep",
+  "round": 1,
+  "submittedAt": "2026-07-28T02:37:37.798Z",
+  "answers": {
+    "availability-objective": {
+      "questionId": "availability-objective",
+      "status": "answered",
+      "value": "serve-stale",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "evaluation-location": {
+      "questionId": "evaluation-location",
+      "status": "answered",
+      "value": "in-process-sdk",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "consistency-model": {
+      "questionId": "consistency-model",
+      "status": "answered",
+      "value": "tiered",
+      "source": "recommended",
+      "confidence": "medium"
+    },
+    "distribution-topology": {
+      "questionId": "distribution-topology",
+      "status": "answered",
+      "value": "regional-stream-plus-poll",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "control-plane-writes": {
+      "questionId": "control-plane-writes",
+      "status": "answered",
+      "value": "single-writer-home",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "rollout-safety": {
+      "questionId": "rollout-safety",
+      "status": "answered",
+      "value": [
+        "progressive-rollout",
+        "automatic-rollback",
+        "approval"
+      ],
+      "source": "recommended",
+      "confidence": "medium"
+    },
+    "flag-lifecycle": {
+      "questionId": "flag-lifecycle",
+      "status": "answered",
+      "value": "owner-expiry-enforced",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "targeting-data": {
+      "questionId": "targeting-data",
+      "status": "answered",
+      "value": "typed-context-local",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "snapshot-integrity": {
+      "questionId": "snapshot-integrity",
+      "status": "answered",
+      "value": [
+        "signature",
+        "monotonic-version",
+        "schema-validation"
+      ],
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "telemetry-boundary": {
+      "questionId": "telemetry-boundary",
+      "status": "answered",
+      "value": "aggregated-sampled",
+      "source": "recommended",
+      "confidence": "medium"
+    },
+    "experiment-boundary": {
+      "questionId": "experiment-boundary",
+      "status": "answered",
+      "value": "separate-integration",
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "disaster-recovery": {
+      "questionId": "disaster-recovery",
+      "status": "answered",
+      "value": [
+        "immutable-history",
+        "signed-rollback",
+        "sdk-defaults-only"
+      ],
+      "source": "recommended",
+      "confidence": "high"
+    },
+    "rule-semantics": {
+      "questionId": "rule-semantics",
+      "status": "answered",
+      "value": "versioned-ir-conformance",
+      "source": "recommended",
+      "confidence": "high"
+    }
+  },
+  "changedFromRecommendations": []
+}

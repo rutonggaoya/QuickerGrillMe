@@ -1,5 +1,6 @@
 node_modules/
 dist/
 answers.json
+!examples/global-feature-flags/answers.json
 *.tmp
 .DS_Store
