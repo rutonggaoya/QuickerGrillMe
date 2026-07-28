@@ -1,61 +1,110 @@
 # QuickerGrillMe
 
-Install the cross-agent skill from this repository:
+QuickerGrillMe is an Agent Skill that stress-tests a software design before implementation. It asks only questions whose answers materially change the design, then produces a reconciled plan and a readable decision summary.
+
+## Install
+
+Prerequisites: Node.js 20 or newer and a local browser.
 
 ```text
 npx skills add rutonggaoya/QuickerGrillMe --skill quicker-grill-me
 ```
 
-Invoke it as:
+The installed skill is self-contained. End users do not need to clone this repository, install project dependencies, or compile TypeScript.
+
+## Use
+
+Give your Agent a proposal, then invoke:
 
 ```text
 /quicker-grill-me
 ```
 
-If the host does not support slash invocation, say: **Use the quicker-grill-me skill to stress-test this design before implementation.**
+If the host does not support slash commands, say:
 
-The Agent inspects the proposal and available code for factual context, generates only questions whose answers materially change the design, and opens the bundled local questionnaire automatically. The questionnaire preselects recommendations, records explicit temporary defaults for deferred decisions, saves the answer artifact locally, and closes. The completed workflow persists `final-design.md` as the **Agent Design Plan**, generates a self-contained **Questionnaire Results & Design Summary** HTML with key decisions first, and returns clearly labeled links to both files. End users do not clone the repository, install project dependencies, or compile TypeScript.
+```text
+Use the quicker-grill-me skill to stress-test this design before implementation.
+```
 
-QuickerGrillMe is local-only and lightweight. The runtime binds to `127.0.0.1`, serves fixed bundled assets, makes no external browser requests, and writes a readable JSON answer artifact. It exits after submission or when the questionnaire page is closed, while allowing ordinary page refreshes to reconnect during a short grace period.
+The Agent inspects the proposal and relevant code, opens a local questionnaire with recommended answers preselected, and asks you to review only the decisions that materially affect the design.
 
-## What the skill produces
+## What you get
 
-After at most two bounded questionnaire rounds, the Agent produces:
+The workflow stops before implementation and returns two local artifacts:
 
-- a complete reconciled design;
-- a decision summary and material consequences;
-- material defaults and assumptions;
-- deferred validation items with temporary defaults and triggers;
-- a full default-ledger appendix.
+| Artifact | Purpose |
+| --- | --- |
+| `final-design.md` | The editable Agent Design Plan and source of truth for later implementation |
+| `design-review.html` | A self-contained review of key decisions, consequences, defaults, and the reconciled design |
 
-The Agent stops before implementation and returns the review HTML and editable plan Markdown links without an additional confirmation prompt. If material confidence is insufficient after round one, it generates the bounded second-round questionnaire directly.
+The final design covers the applicable architecture, interfaces, behavior, failure handling, security, operations, rollout, and validation strategy. Deferred decisions retain an explicit temporary default and a concrete validation trigger instead of becoming hidden unknowns.
+
+## End-to-end example
+
+Start with a short proposal:
+
+```text
+We need to add webhook delivery to our API.
+Events should be delivered asynchronously, retried on transient failures,
+and visible to customers in a delivery history page.
+
+Use the quicker-grill-me skill to stress-test this design before implementation.
+```
+
+QuickerGrillMe then:
+
+1. inspects the proposal and relevant repository context;
+2. opens a bounded questionnaire covering material choices such as delivery guarantees, retry limits, signing, retention, and failure handling;
+3. records your changes, explicit deferrals, and the recommendations you accepted;
+4. returns `final-design.md` and `design-review.html`.
+
+You can continue in a later task with:
+
+```text
+Implement the design in final-design.md.
+```
+
+## Design and technology
+
+The workflow follows four rules:
+
+- ask only when plausible answers lead to materially different designs;
+- preselect a recommendation so the questionnaire is useful without busywork;
+- make consequential defaults and uncertainty visible;
+- cap the process at two rounds, with a second round only when risk or contradictions warrant it.
+
+Questions and answers use language-neutral JSON contracts. The reference implementation is written in TypeScript, with a short-lived local Node.js server and a React browser UI. The installable skill ships generated, dependency-free runtime assets.
+
+The browser runtime binds only to `127.0.0.1`, serves bundled assets, makes no external browser requests, and writes readable local artifacts. See [DESIGN.md](DESIGN.md) for the workflow, contracts, stop rules, architecture, and security model.
 
 ## Update or remove
-
-The `skills` CLI can update or remove the installed skill:
 
 ```text
 npx skills update quicker-grill-me
 npx skills remove quicker-grill-me
 ```
 
-## Contributor development
+## Local development and debugging
 
-The TypeScript/Node project is the reference implementation. Contributors need Node.js 20 or newer:
+Clone the repository and install contributor dependencies:
 
 ```text
 npm ci
+npm start
+```
+
+`npm start` builds the project and opens the example questionnaire. Other useful commands:
+
+```text
+npm run validate:example
 npm run build:skill
 npm test
 ```
 
-`npm run build:skill` compiles the source and deterministically synchronizes the committed, dependency-free distribution under [`skills/quicker-grill-me/`](skills/quicker-grill-me/). `npm test` fails when that generated runtime or its fixed assets/contracts are stale. The suite also copies the installed skill to an isolated path containing spaces, launches its bundled CLI without `node_modules`, submits through the browser API, verifies atomic persistence, and checks clean shutdown.
+`npm run build:skill` synchronizes the committed distribution under [`skills/quicker-grill-me/`](skills/quicker-grill-me/). `npm test` also verifies that the generated distribution is current and can run without repository dependencies.
 
-Additional source commands:
+## Feedback and contributions
 
-```text
-npm run validate:example
-npm start
-```
+Open an issue for bugs, unclear behavior, or design suggestions. Pull requests are welcome; keep changes focused, run `npm test`, and include the generated skill distribution when source changes affect it.
 
-The language-neutral contracts live in [`schema/`](schema/), and [`DESIGN.md`](DESIGN.md) describes the core, browser adapter, installable Agent Skill package, depth caps, stop rules, and security model.
+The normative contracts live in [`schema/`](schema/), and the end-user skill instructions live in [`skills/quicker-grill-me/SKILL.md`](skills/quicker-grill-me/SKILL.md).
